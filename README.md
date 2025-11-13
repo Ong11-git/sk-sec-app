@@ -57,4 +57,16 @@ Create a `.env` file inside the **backend** folder:
 DATABASE_URL="postgresql://<user>:<password>@localhost:5432/<dbname>?schema=public"
 
 # JWT Secret Key
-JWT_SECRET="your_secret_key_here"
+JWT_SECRET=372c0e39082687e8cb342f8cae73b59c349d912d5be6d534a8488f3cb20e2eac83ed2ebdff7dbe7ac2f51c164124b0212cb4ffe6cde8c73b4e859cf304e95074
+JWT_EXPIRES_IN=1d
+
+# Admin Credential
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=Admin@123
+#File Upload
+UPLOAD_DIR=./uploads
+
+git clone https://github.com/Ong11-git/sk-sec-app.git
+cd sk-sec-app
+
+
