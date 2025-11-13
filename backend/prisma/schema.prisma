@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String   // hashed
+  name      String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Voter {
+  id           Int      @id @default(autoincrement())
+  epicNo       String   @unique
+  name         String
+  relationType String?
+  relationName String?
+  age          Int?
+  gender       String?
+  country      String?
+  state        String?
+
+  // ---- Shared ----
+  districtId Int
+  district   District @relation(fields: [districtId], references: [id])
+
+  // ---- Constituency (Rural or Municipal) ----
+  constituencyId Int?
+  constituency   Constituency? @relation(fields: [constituencyId], references: [id])
+
+  // ---- Rural Hierarchy ----
+  tcId   Int?
+  gpuId  Int?
+  wardId Int?
+
+  tc   Tc?   @relation(fields: [tcId], references: [id])
+  gpu  Gpu?  @relation(fields: [gpuId], references: [id])
+  ward Ward? @relation(fields: [wardId], references: [id])
+
+  // ---- Municipal Hierarchy ----
+  municipalityId  Int?
+  municipalWardId Int?
+
+  municipality   Municipality?   @relation(fields: [municipalityId], references: [id])
+  municipalWard  MunicipalWard?  @relation(fields: [municipalWardId], references: [id])
+}
+
+model District {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  voters         Voter[]
+  municipalities Municipality[]
+
+  // Many-to-many with Constituency
+  constituencies DistrictConstituency[]
+}
+
+model Constituency {
+  id   Int    @id @default(autoincrement())
+  constituencyNo Int @unique
+  name String
+  voters Voter[]
+  tcs    Tc[]
+  // One-to-many with Municipality
+  municipalities Municipality[] 
+  // Many-to-many with District
+  districts DistrictConstituency[]
+}
+
+// Join table for many-to-many
+model DistrictConstituency {
+  districtId     Int
+  constituencyId Int
+
+  district     District     @relation(fields: [districtId], references: [id])
+  constituency Constituency @relation(fields: [constituencyId], references: [id])
+
+  @@id([districtId, constituencyId])
+}
+
+model Tc {
+  id       Int      @id @default(autoincrement())
+  tc_no    Int
+  tc_name  String
+
+  constituencyId Int
+  constituency   Constituency @relation(fields: [constituencyId], references: [id])
+
+  voters Voter[]
+  gpus   Gpu[]
+}
+
+model Gpu {
+  id       Int      @id @default(autoincrement())
+  gpu_no   Int
+  gpu_name String
+
+  tcId Int
+  tc   Tc @relation(fields: [tcId], references: [id])
+
+  voters Voter[]
+  wards  Ward[]
+}
+
+model Ward {
+  id        Int      @id @default(autoincrement())
+  ward_no   Int
+  ward_name String
+
+  gpuId Int
+  gpu   Gpu @relation(fields: [gpuId], references: [id])
+
+  voters Voter[]
+}
+
+// ---------------- Municipal Models ----------------
+
+model Municipality {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  districtId Int
+  district   District @relation(fields: [districtId], references: [id])
+
+  constituencyId Int
+  constituency   Constituency @relation(fields: [constituencyId], references: [id])
+
+  wards  MunicipalWard[]
+  voters Voter[]
+}
+
+model MunicipalWard {
+  id      Int    @id @default(autoincrement())
+  ward_no Int
+  name    String
+
+  municipalityId Int
+  municipality   Municipality @relation(fields: [municipalityId], references: [id])
+
+  voters Voter[]
+}
