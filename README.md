@@ -66,7 +66,15 @@ ADMIN_PASSWORD=Admin@123
 #File Upload
 UPLOAD_DIR=./uploads
 
+## Getting Started
+#Clone the repository
 git clone https://github.com/Ong11-git/sk-sec-app.git
 cd sk-sec-app
 
+## Backend Setup
+cd backend
+npm install
+##Initialize Prisma
+npx prisma migrate dev --name init
+##Run the backend server
 
