@@ -338,10 +338,10 @@ useEffect(() => {
         const data = await res.json();
 
         // ✅ map API response to recharts format
-        const formatted = data.map((item: any) => ({
-          name: item.lastName,
-          value: item.count,
-        }));
+      const formatted = (data.summary || []).map((item: any) => ({
+        name: item.lastName,
+        value: item.count,
+      }));
 
         setCommunityData(formatted);
       } catch (err: any) {

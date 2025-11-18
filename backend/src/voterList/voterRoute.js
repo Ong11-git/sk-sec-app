@@ -133,6 +133,7 @@ voterRouter.get(
     try {
       const lastNames = await getVoterLastNames();
       res.json(lastNames);
+      //console.log("Last Names:", lastNames);
     } catch (error) {
       console.error("Error fetching voter last names", error.message);
       res.status(500).json({ error: "Failed to fetch voter last names." });

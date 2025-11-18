@@ -1,4 +1,5 @@
 import prisma from "../../prisma/prisma.js";
+import stringSimilarity from "string-similarity";
 
 export async function getAllVoters() {
   return await prisma.voter.findMany({
@@ -261,6 +262,96 @@ export const getConstituencyWiseVoterCount = async () => {
   }));
 };
 
+const surnameNormalizationMap = {
+  "CHETTRI": "CHETTRI",
+  "CHHETRI": "CHETTRI",
+  "KARKI": "CHETTRI",
+  "BISTA": "CHETTRI",
+  "POUDYAL": "CHETTRI, SHARMA",
+  "POUDYAL/CHETTRI": "CHETTRI, SHARMA",
+  "GAUTAM": "CHETTRI",
+  "TEWARI": "CHETTRI, SHARMA",
+  "LEPCHA": "LEPCHA",
+  "LEPCHA(LAMA)": "LEPCHA",
+  "LEPCHA/LAMA": "LEPCHA",
+  "(LEPCHA)": "LEPCHA",
+  "MANGER": "MANGER",
+  "MANGAR": "MANGER",
+  "MONGER": "MANGER",
+  "RAI": "RAI",
+  "DARJEE": "DARJEE",
+  "SEWA": "DARJEE",
+  "SUBBA": "SUBBA",
+  "LIMBO": "SUBBA",
+  "LIMBOO": "SUBBA",
+  "LIMBU": "SUBBA",
+  "LIMBOO(SUBBA)": "SUBBA",
+  "LIMBU(SUBBA)": "SUBBA",
+  "SUBBA(LIMBOO)": "SUBBA",
+  "(SUBBA)": "SUBBA",
+  "BHUTIA": "BHUTIA",
+  "DORJEE": "BHUTIA",
+  "DHOPTHAPA": "BHUTIA",
+  "DOPTHAPA": "BHUTIA",
+  "BHUTI": "BHUTIA",
+  "KAGATAY": "BHUTIA",
+  "KAGATEY": "BHUTIA",
+  "SHARMA": "SHARMA",
+  "POKHREL": "SHARMA",
+  "SHARMA/POKHREL": "SHARMA",
+  "POKHREL/SHARMA": "SHARMA",
+  "SHARMA/DAHAL": "SHARMA",
+  "DAHAL": "SHARMA",
+  "LUITEE": "SHARMA, CHETTRI",
+  "LUITEL": "SHARMA, CHETTRI",
+  "THAPA": "MANGAR, CHETTRI",
+  "TAMANG": "TAMANG",
+  "LAMA": "TAMANG",
+  "PRADHAN": "PRADHAN",
+  "LINGCHEYRADHAN": "PRADHAN",
+  "KAMI": "KAMI",
+  "BISHUKARMA": "KAMI",
+  "BISHWAKARMA": "KAMI",
+  "BISWAKARMA(KAMI)": "KAMI",
+  "GURUNG": "GURUNG",
+  "LAMICHANEY": "KAMI, GURUNG",
+  "LAMICHHANEY": "KAMI, GURUNG",
+  "SANYASHI": "SANYASHI",
+  "SANYASI": "SANYASHI",
+  "GURAGAIN": "GURAGAIN",
+  "BAGDAS": "BAGDAS",
+  "HINGMANG": "HINGMANG",
+  "CHOPEL": "",
+  "DOMA": ""
+};
+
+function cleanAndNormalizeSurname(rawName) {
+  if (!rawName) return "UNKNOWN";
+
+  let lastName = rawName
+    .toUpperCase()
+    .replace(/[()\/]/g, " ") // remove brackets & slashes
+    .replace(/\s+/g, " ") // multiple spaces → single space
+    .trim();
+
+  // Take the last word (likely surname)
+  const parts = lastName.split(" ");
+  lastName = parts[parts.length - 1];
+
+  // Apply direct normalization map
+  if (surnameNormalizationMap[lastName]) {
+    return surnameNormalizationMap[lastName];
+  }
+
+  // Fallback fuzzy match: find close match among known normalized keys
+  const knownNames = Object.values(surnameNormalizationMap);
+  const { bestMatch } = stringSimilarity.findBestMatch(lastName, knownNames);
+  if (bestMatch.rating >= 0.85) {
+    return bestMatch.target; // if close enough, use canonical name
+  }
+
+  return lastName;
+}
 
 export const getVoterLastNames = async () => {
   const voters = await prisma.voter.findMany({
@@ -271,54 +362,60 @@ export const getVoterLastNames = async () => {
   });
 
   const lastNameCounts = {};
+  const errorMappings = []; // store mismatched or cleaned surnames
 
   for (const voter of voters) {
-    let lastName = null;
+    let actualLastName = null;
 
-    // 1️⃣ Extract from voter.name
+    // 1️⃣ Try from voter.name
     if (voter.name) {
       const parts = voter.name.trim().split(/\s+/);
       if (parts.length > 1) {
-        lastName = parts[parts.length - 1].toUpperCase();
+        actualLastName = parts[parts.length - 1].toUpperCase();
       }
     }
 
     // 2️⃣ Fallback to relationName
-    if (!lastName && voter.relationName) {
+    if (!actualLastName && voter.relationName) {
       const relationParts = voter.relationName.trim().split(/\s+/);
       if (relationParts.length > 1) {
-        lastName = relationParts[relationParts.length - 1].toUpperCase();
+        actualLastName = relationParts[relationParts.length - 1].toUpperCase();
       }
     }
 
     // 3️⃣ Default if still missing
-    if (!lastName) lastName = "UNKNOWN";
+    if (!actualLastName) {
+      actualLastName = "UNKNOWN";
+    }
 
-    // Count occurrences
-    lastNameCounts[lastName] = (lastNameCounts[lastName] || 0) + 1;
+    // 4️⃣ Clean and normalize
+    const cleanedLastName = cleanAndNormalizeSurname(actualLastName);
+
+    // 5️⃣ Track mismatches for debugging/analysis
+    if (cleanedLastName !== actualLastName) {
+      errorMappings.push({
+        actualLastName,
+        cleanedLastName,
+      });
+    }
+
+    // 6️⃣ Count occurrences of cleaned surnames
+    lastNameCounts[cleanedLastName] =
+      (lastNameCounts[cleanedLastName] || 0) + 1;
   }
 
-  // Convert object to array
-  return Object.entries(lastNameCounts).map(([lastName, count]) => ({
-    lastName,
-    count,
-  }));
+  // 7️⃣ Prepare result
+  const result = Object.entries(lastNameCounts)
+    .map(([lastName, count]) => ({ lastName, count }))
+    .sort((a, b) => b.count - a.count);
+
+  return {
+    summary: result, // surname counts
+    mismatches: errorMappings, // incorrect → corrected mappings
+  };
 };
 
-// export async function getAllConstituencies() {
-//   try {
-//     return await prisma.constituency.findMany({
-//       select: {
-//         id: true,
-//         name: true,
-//       },
-//       orderBy: { name: "asc" },
-//     });
-//   } catch (error) {
-//     console.error("Error fetching constituencies:", error.message);
-//     throw new Error("Failed to fetch constituencies");
-//   }
-// }
+
 
 
 export async function getVotersByConstituency(constituencyName) {
@@ -549,6 +646,7 @@ export async function getVotersByGpu(gpuName) {
       genderCounts,
       communityCounts,
     };
+    
   } catch (error) {
     console.error("Error fetching voters by GPU:", error.message);
     throw new Error("Failed to fetch GPU-wise voters");
