@@ -8,9 +8,9 @@ const pdf = require("pdf-parse");
  * @param {string} pdfPath
  * @returns {Promise<string>}
  */
-export async function extractTextFromPdf(pdfPath) {
+export async function extractTextFromPdf(buffer) {
   try {
-    const buffer = fs.readFileSync(pdfPath);
+    //const buffer = fs.readFileSync(pdfPath);
     const data = await pdf(buffer);
     return data.text;
   } catch (err) {
@@ -156,12 +156,13 @@ function parseVoterRecords(content, sourceFile) {
 /**
  * Convert uploaded PDF file to JSON
  */
-export async function convertPdfToJson(pdfPath) {
-  console.log("Processing PDF:", pdfPath);
+export async function convertPdfToJson(pdfBuffer) {
+  console.log("Processing PDF Buffer... size:", pdfBuffer.length);
 
-  const content = await extractTextFromPdf(pdfPath);
+  const content = await extractTextFromPdf(pdfBuffer); // now passing buffer
   if (!content) return [];
 
-  const voters = parseVoterRecords(content, pdfPath);
+  const voters = parseVoterRecords(content); 
   return voters;
 }
+

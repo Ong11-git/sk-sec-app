@@ -16,6 +16,8 @@ export default function AddVoters() {
   const [wards, setWards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [areaType, setAreaType] = useState<"Rural" | "Urban">("Rural");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
@@ -27,6 +29,21 @@ export default function AddVoters() {
     fetchVoters();
     fetchDistricts();
   }, []);
+
+  const startProgress = () => {
+  setProgress(0);
+  let pct = 0;
+
+  const interval = setInterval(() => {
+    pct += 2; // speed (2% every 100ms → ~5 sec)
+    setProgress(pct);
+
+    if (pct >= 98) clearInterval(interval); // stop before completion
+  }, 100);
+
+  return interval;
+};
+
 
   const fetchVoters = async () => {
     try {
@@ -131,55 +148,81 @@ export default function AddVoters() {
     }
   };
 
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!uploadedFile) {
-      alert("Please select a PDF file to upload.");
+const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  if (!uploadedFile) {
+    alert("❌ Please select a PDF file to upload.");
+    return;
+  }
+
+  try {
+    const token = sessionStorage.getItem("token");
+    const formData = new FormData();
+
+    formData.append("districtId", selectedDistrict);
+    formData.append("constituencyId", selectedConstituency);
+    formData.append("tcId", selectedTc);
+    formData.append("gpuId", selectedGpu);
+    formData.append("wardId", selectedWard);
+    formData.append("areaType", areaType);
+    formData.append("electoral-roll", uploadedFile);
+
+    setUploading(true);
+    const progressTimer = startProgress();
+
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/pdf/upload-pdf`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await res.json();
+        // Finish bar instantly once done
+    setProgress(100);
+    clearInterval(progressTimer);
+
+    setTimeout(() => setUploading(false), 500);
+
+    if (!res.ok) {
+      // Backend already sends clear message including epic number list
+      alert(`⚠ Upload failed:\n\n${data.error || "Unknown error occurred."}`);
       return;
     }
 
-    try {
-      const token = sessionStorage.getItem("token");
-      const formData = new FormData();
-      formData.append("districtId", selectedDistrict);
-      formData.append("constituencyId", selectedConstituency);
-      formData.append("tcId", selectedTc);
-      formData.append("gpuId", selectedGpu);
-      formData.append("wardId", selectedWard);
-      formData.append("areaType", areaType);
-      formData.append("electoral-roll", uploadedFile);
+    // SUCCESS MESSAGE
+    let message = `✔ PDF Upload Completed\n\n📌 Inserted: ${data.insertedCount}\n🔁 Duplicates: ${data.duplicateCount}`;
 
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/pdf/upload-pdf`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error("Failed to upload PDF");
-
-      await res.json();
-      alert("PDF uploaded successfully!");
-
-      // Refresh voters list
-      fetchVoters();
-
-      // Reset form
-      setUploadedFile(null);
-      setSelectedDistrict("");
-      setSelectedConstituency("");
-      setSelectedTc("");
-      setSelectedGpu("");
-      setSelectedWard("");
-      setAreaType("Rural");
-
-      // Close modal automatically
-      const modal = document.getElementById("add_voter_modal") as HTMLDialogElement;
-      modal?.close();
-    } catch (err: any) {
-      console.error("Upload error:", err);
-      alert(`Upload failed: ${err.message}`);
+    // If duplicates exist, append list
+    if (data.duplicateCount > 0 && data.duplicateEpicNumbers?.length > 0) {
+      message += `\n\n⚠ Duplicate EPIC Numbers:\n${data.duplicateEpicNumbers.join("\n")}`;
     }
-  };
+
+    alert(message);
+
+    // Refresh voters table
+    fetchVoters();
+
+    // Reset fields
+    setUploadedFile(null);
+    setSelectedDistrict("");
+    setSelectedConstituency("");
+    setSelectedTc("");
+    setSelectedGpu("");
+    setSelectedWard("");
+    setAreaType("Rural");
+
+    // Close modal
+    document.getElementById("add_voter_modal")?.close();
+
+  } catch (err: any) {
+    console.error("Upload error:", err);
+    alert(`❌ Upload failed: ${err.message}`);
+  }
+};
+
 
   // Pagination
   const totalPages = Math.ceil(voters.length / itemsPerPage);
@@ -482,10 +525,36 @@ export default function AddVoters() {
             </div>
 
             <div className="modal-action">
-              <button type="submit" className="btn btn-success text-white btn-sm">
-                <Save size={14} /> Save
+              <button
+                type="submit"
+                disabled={uploading}
+                className="btn btn-success text-white btn-sm"
+              >
+                <Save size={14} /> {uploading ? "Uploading..." : "Save"}
               </button>
             </div>
+            {uploading && (
+            <div style={{ marginTop: "10px" }}>
+              <label>Uploading...</label>
+              <div style={{
+                width: "100%",
+                height: "10px",
+                background: "#ddd",
+                borderRadius: "5px",
+                marginTop: "6px"
+              }}>
+                <div style={{
+                  width: `${progress}%`,
+                  height: "100%",
+                  background: "#4CAF50",
+                  transition: "width 0.1s ease-in-out",
+                  borderRadius: "5px",
+            }} />
+        </div>
+        <small>{progress}%</small>
+      </div>
+    )}
+
           </form>
         </div>
       </dialog>

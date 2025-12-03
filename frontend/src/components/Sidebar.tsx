@@ -96,8 +96,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             },
             { key: "gpu", label: "GPU", icon: FiHome },
             { key: "ward", label: "Ward", icon: FiHome },
-            { key: "voters", label: "Voters List", icon: FiUsers },
-            { key: "votersFilters", label: "Voters Filters", icon: FiFilter },
+            // { key: "voters", label: "Voters List", icon: FiUsers },
+            // { key: "votersFilters", label: "Voters Filters", icon: FiFilter },
             { key: "addVoters", label: "Add Voters", icon: FiUserPlus },
           ].map(({ key, label, icon: Icon }) => (
             <button

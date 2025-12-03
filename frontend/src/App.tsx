@@ -54,10 +54,6 @@ const App: React.FC = () => {
           <AddGpu/>
         ):activeTab === "ward"?(
           <AddWard/>
-        ): activeTab === "voters" ? (
-          <VotersList />
-        ) : activeTab === "votersFilters" ? (
-          <VoterFilters />
         ) : (
           <AddVoters />
         )}
