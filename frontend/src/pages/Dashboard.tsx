@@ -8,47 +8,43 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  // LineChart,
-  // Line,
   PieChart,
   Pie,
   Cell,
 } from "recharts";
-// import {
-//   ageGroupData,
-//   genderData,
-//   trendData,
-// } from "../data";
 import StatCard from "../components/StatCard";
 import ChartCard from "../components/ChartCard";
 
+// Define the AgeGroupData interface
+interface AgeGroupData {
+  ageGroup: string;
+  count: number;
+}
+
 const Dashboard: React.FC = () => {
   const [totalVoters, setTotalVoters] = useState<number | null>(null);
-  const [totalConstituency, settotalConstituency] = useState<number | null>(null);
-  const [totalDistrict, settotalDistrict] = useState<number | null>(null);
-
-  const [voterAvgAge, setvoterAvgAge] = useState<number | null>(null);
-  const [districtData, setDistrictData] = useState<{ district: string; voters: number }[]>([]);
+  const [totalConstituency, setTotalConstituency] = useState<number | null>(
+    null
+  );
+  const [totalDistrict, setTotalDistrict] = useState<number | null>(null);
+  const [voterAvgAge, setVoterAvgAge] = useState<number | null>(null);
+  const [districtData, setDistrictData] = useState<
+    { district: string; voters: number }[]
+  >([]);
   const [ageGroupData, setAgeGroupData] = useState<AgeGroupData[]>([]);
-
   const [genderData, setGenderData] = useState<any[]>([]);
   const [loadingGender, setLoadingGender] = useState(true);
   const [errorGender, setErrorGender] = useState<string | null>(null);
-
   const [constituencyData, setConstituencyData] = useState<any[]>([]);
   const [loadingConstituency, setLoadingConstituency] = useState(true);
-  const [errorConstituency, setErrorConstituency] = useState<string | null>(null);
-
-
-
+  const [errorConstituency, setErrorConstituency] = useState<string | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [communityData, setCommunityData] = useState<any[]>([]);
   const [loadingCommunity, setLoadingCommunity] = useState(true);
   const [errorCommunity, setErrorCommunity] = useState<string | null>(null);
-
-
 
   useEffect(() => {
     const fetchVoterCount = async () => {
@@ -94,11 +90,13 @@ const Dashboard: React.FC = () => {
         );
 
         if (!res.ok) {
-          throw new Error(`Failed to fetch constituency count: ${res.statusText}`);
+          throw new Error(
+            `Failed to fetch constituency count: ${res.statusText}`
+          );
         }
         const data = await res.json();
         console.log(data.count);
-        settotalConstituency(data.count)
+        setTotalConstituency(data.count);
       } catch (err: any) {
         setError(err.message || "Something went wrong");
       } finally {
@@ -109,38 +107,37 @@ const Dashboard: React.FC = () => {
     fetchConstituencyCount();
   }, []);
 
-    useEffect(() => {
-      const fetchDistrictCount = async () => {
-        try {
-          const token = sessionStorage.getItem("token");
-          const res = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL}/districts/count`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (!res.ok) {
-            throw new Error(`Failed to fetch district count: ${res.statusText}`);
+  useEffect(() => {
+    const fetchDistrictCount = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/districts/count`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           }
-          const data = await res.json();
-          console.log(data.count);
-          settotalDistrict(data.count)
-        } catch (err: any) {
-          setError(err.message || "Something went wrong");
-        } finally {
-          setLoading(false);
-        }
-      };
+        );
 
-      fetchDistrictCount();
+        if (!res.ok) {
+          throw new Error(`Failed to fetch district count: ${res.statusText}`);
+        }
+        const data = await res.json();
+        console.log(data.count);
+        setTotalDistrict(data.count);
+      } catch (err: any) {
+        setError(err.message || "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDistrictCount();
   }, []);
 
-
-    useEffect(() => {
+  useEffect(() => {
     const fetchVoterAvgAge = async () => {
       try {
         const token = sessionStorage.getItem("token");
@@ -158,7 +155,7 @@ const Dashboard: React.FC = () => {
           throw new Error(`Failed to fetch average-age: ${res.statusText}`);
         }
         const data = await res.json();
-        setvoterAvgAge(data.averageAge)
+        setVoterAvgAge(data.averageAge);
       } catch (err: any) {
         setError(err.message || "Something went wrong");
       } finally {
@@ -173,18 +170,21 @@ const Dashboard: React.FC = () => {
     const fetchDistrictData = async () => {
       try {
         const token = sessionStorage.getItem("token");
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/voters/district-wise-count`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/voters/district-wise-count`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         if (!res.ok) {
           throw new Error("Failed to fetch district data");
         }
         const data = await res.json();
         console.log(data);
-        
+
         setDistrictData(data);
       } catch (err) {
         console.error("Error fetching district-wise voter count:", err);
@@ -234,90 +234,92 @@ const Dashboard: React.FC = () => {
   }, []);
 
   useEffect(() => {
-  const fetchGenderData = async () => {
-    try {
-      const token = sessionStorage.getItem("token");
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/voters/gender-distribution`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+    const fetchGenderData = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/voters/gender-distribution`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch gender data: ${res.statusText}`);
         }
-      );
 
-      if (!res.ok) {
-        throw new Error(`Failed to fetch gender data: ${res.statusText}`);
+        const data = await res.json();
+
+        // API returns { gender: "Male", count: 120 } → recharts expects { name, value }
+        const formatted = data.map((item: any) => ({
+          name: item.gender,
+          value: item.count,
+          color:
+            item.gender === "Male"
+              ? "#3B82F6"
+              : item.gender === "Female"
+              ? "#EC4899"
+              : "#8B5CF6", // fallback for "Other"
+        }));
+        console.log(formatted);
+
+        setGenderData(formatted);
+      } catch (err: any) {
+        setErrorGender(err.message || "Something went wrong");
+      } finally {
+        setLoadingGender(false);
       }
+    };
 
-      const data = await res.json();
+    fetchGenderData();
+  }, []);
 
-      // API returns { gender: "Male", count: 120 } → recharts expects { name, value }
-      const formatted = data.map((item: any) => ({
-        name: item.gender,
-        value: item.count,
-        color:
-          item.gender === "Male"
-            ? "#3B82F6"
-            : item.gender === "Female"
-            ? "#EC4899"
-            : "#8B5CF6", // fallback for "Other"
-      }));
-      console.log(formatted);
-      
-      setGenderData(formatted);
-    } catch (err: any) {
-      setErrorGender(err.message || "Something went wrong");
-    } finally {
-      setLoadingGender(false);
-    }
-  };
+  useEffect(() => {
+    const fetchConstituencyVoters = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/voters/constituency-voters`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-  fetchGenderData();
-}, []);
-
-useEffect(() => {
-  const fetchConstituencyVoters = async () => {
-    try {
-      const token = sessionStorage.getItem("token");
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/voters/constituency-voters`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+        if (!res.ok) {
+          throw new Error(
+            `Failed to fetch constituency voters: ${res.statusText}`
+          );
         }
-      );
 
-      if (!res.ok) {
-        throw new Error(`Failed to fetch constituency voters: ${res.statusText}`);
+        const data = await res.json();
+        console.log(data);
+
+        // API returns [{ constituency: "ABC", count: 100 }, ...]
+        // Recharts expects { name, value }
+        const formatted = data.map((item: any) => ({
+          name: item.constituency,
+          value: item.voters,
+        }));
+
+        console.log("Constituency voters:", formatted);
+        setConstituencyData(formatted);
+      } catch (err: any) {
+        setErrorConstituency(err.message || "Something went wrong");
+      } finally {
+        setLoadingConstituency(false);
       }
+    };
 
-      const data = await res.json();
-      console.log(data);
-      
-      // API returns [{ constituency: "ABC", count: 100 }, ...]
-      // Recharts expects { name, value }
-      const formatted = data.map((item: any) => ({
-        name: item.constituency,
-        value: item.voters,
-      }));
+    fetchConstituencyVoters();
+  }, []);
 
-      console.log("Constituency voters:", formatted);
-      setConstituencyData(formatted);
-    } catch (err: any) {
-      setErrorConstituency(err.message || "Something went wrong");
-    } finally {
-      setLoadingConstituency(false);
-    }
-  };
-
-  fetchConstituencyVoters();
-}, []);
-
-useEffect(() => {
+  useEffect(() => {
     const fetchCommunityData = async () => {
       try {
         const token = sessionStorage.getItem("token");
@@ -354,8 +356,6 @@ useEffect(() => {
     fetchCommunityData();
   }, []);
 
-
-
   return (
     <div className="p-4 lg:p-6">
       <div className="mb-6 lg:mb-8">
@@ -372,7 +372,11 @@ useEffect(() => {
           icon={<Users className="h-full w-full text-blue-500" />}
           title="Total Voters"
           value={
-            loading ? "Loading..." : error ? "Error" : totalVoters?.toString()
+            loading
+              ? "Loading..."
+              : error
+              ? "Error"
+              : totalVoters?.toString() || "0"
           }
           colorClass="border-blue-500"
         />
@@ -380,7 +384,11 @@ useEffect(() => {
           icon={<MapPin className="h-full w-full text-green-500" />}
           title="Districts"
           value={
-            loading ? "Loading..." : error ? "Error" : totalDistrict?.toString()
+            loading
+              ? "Loading..."
+              : error
+              ? "Error"
+              : totalDistrict?.toString() || "0"
           }
           colorClass="border-green-500"
         />
@@ -388,7 +396,11 @@ useEffect(() => {
           icon={<BarChart3 className="h-full w-full text-purple-500" />}
           title="Constituencies"
           value={
-            loading ? "Loading..." : error ? "Error" : totalConstituency?.toString()
+            loading
+              ? "Loading..."
+              : error
+              ? "Error"
+              : totalConstituency?.toString() || "0"
           }
           colorClass="border-purple-500"
         />
@@ -401,13 +413,14 @@ useEffect(() => {
               : error
               ? "Error"
               : voterAvgAge
-              ? Math.round(voterAvgAge).toString() // 👈 round off to nearest whole number
+              ? Math.round(voterAvgAge).toString()
               : "0"
-        }
-
+          }
           colorClass="border-orange-500"
         />
       </div>
+
+      {/* Main chart grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
         {/* District */}
         <ChartCard title="Voters by District">
@@ -477,77 +490,86 @@ useEffect(() => {
             </ResponsiveContainer>
           )}
         </ChartCard>
-        </div>
 
         {/* Constituency → Full width row */}
-        <ChartCard title="Voters by Constituency" className="lg:col-span-3">
-          {loadingConstituency ? (
-            <p className="p-4 text-sm">Loading...</p>
-          ) : errorConstituency ? (
-            <p className="p-4 text-sm text-red-500">{errorConstituency}</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={constituencyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="name"
-                  tick={{ fontSize: 10 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  label={{
-                    value: "Constituency",
-                    position: "insideBottom",
-                    offset: -4,
-                  }}
-                />
-                <YAxis
-                  tick={{ fontSize: 12 }}
-                  label={{ value: "Voters", angle: -90, position: "insideLeft" }}
-                />
-                <Tooltip />
-                <Bar dataKey="value" fill="#10B981" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </ChartCard>
-         <ChartCard title="Voters by Community (Last Name)" className="lg:col-span-3">
-      {loadingCommunity ? (
-        <p className="p-4 text-sm">Loading...</p>
-      ) : errorCommunity ? (
-        <p className="p-4 text-sm text-red-500">{errorCommunity}</p>
-      ) : (
-        <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={communityData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="name"
-              tick={{ fontSize: 10 }}
-              angle={-45}
-              textAnchor="end"
-              height={80}
-              label={{
-                value: "Community",
-                position: "insideBottom",
-                offset: 4,
-              }}
-            />
-            <YAxis
-              tick={{ fontSize: 12 }}
-              label={{
-                value: "Voters",
-                angle: -90,
-                position: "insideLeft",
-              }}
-            />
-            <Tooltip />
-            <Bar dataKey="value" fill="#3B82F6" /> {/* blue bar for community */}
-          </BarChart>
-        </ResponsiveContainer>
-      )}
-    </ChartCard>
+        <div className="lg:col-span-3">
+          <ChartCard title="Voters by Constituency">
+            {loadingConstituency ? (
+              <p className="p-4 text-sm">Loading...</p>
+            ) : errorConstituency ? (
+              <p className="p-4 text-sm text-red-500">{errorConstituency}</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={constituencyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 10 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    label={{
+                      value: "Constituency",
+                      position: "insideBottom",
+                      offset: -4,
+                    }}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12 }}
+                    label={{
+                      value: "Voters",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                  />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#10B981" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
+        </div>
+
+        {/* Community Chart */}
+        <div className="lg:col-span-3">
+          <ChartCard title="Voters by Community (Last Name)">
+            {loadingCommunity ? (
+              <p className="p-4 text-sm">Loading...</p>
+            ) : errorCommunity ? (
+              <p className="p-4 text-sm text-red-500">{errorCommunity}</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={communityData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 10 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    label={{
+                      value: "Community",
+                      position: "insideBottom",
+                      offset: 4,
+                    }}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12 }}
+                    label={{
+                      value: "Voters",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                  />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#3B82F6" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
+        </div>
+      </div>
     </div>
-    
   );
 };
 

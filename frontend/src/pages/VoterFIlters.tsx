@@ -11,11 +11,9 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Users } from "lucide-react"; // Example icon
+import { Users } from "lucide-react";
 import StatCard from "../components/StatCard";
 import ChartCard from "../components/ChartCard";
-
-const COLORS = ["#3B82F6", "#EC4899", "#8B5CF6", "#10B981", "#F59E0B"];
 
 export default function VoterFilters() {
   const [constituencies, setConstituencies] = useState<any[]>([]);
@@ -60,7 +58,9 @@ export default function VoterFilters() {
       try {
         const token = sessionStorage.getItem("token");
         const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/voters/by-constituency/${selectedConstituency}`,
+          `${
+            import.meta.env.VITE_API_BASE_URL
+          }/voters/by-constituency/${selectedConstituency}`,
           {
             headers: {
               "Content-Type": "application/json",

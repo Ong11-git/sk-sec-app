@@ -10,8 +10,22 @@ import {
   FiHome,
 } from "react-icons/fi";
 import type { SidebarProps } from "../types";
-import Logout from "./Logout";
 import Footer from "./Footer";
+
+// Define the exact type for tab keys
+type TabKey =
+  | "dashboard"
+  | "voters"
+  | "addVoters"
+  | "votersFilters"
+  | "constituency"
+  | "territorialConstituency"
+  | "district"
+  | "gpu"
+  | "ward";
+
+// Define icon component type that accepts className
+type IconComponent = React.ComponentType<{ className?: string }>;
 
 const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
@@ -19,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   onTabChange,
 }) => {
-  const iconColors: Record<string, string> = {
+  const iconColors: Record<TabKey, string> = {
     dashboard: "text-blue-500",
     district: "text-green-600",
     constituency: "text-purple-600",
@@ -30,6 +44,23 @@ const Sidebar: React.FC<SidebarProps> = ({
     gpu: "text-yellow-500",
     ward: "text-yellow-500",
   };
+
+  // Define navigation items with proper typing
+  const navItems: { key: TabKey; label: string; icon: IconComponent }[] = [
+    { key: "dashboard", label: "Dashboard", icon: FiBarChart2 },
+    { key: "district", label: "District", icon: FiMap },
+    { key: "constituency", label: "Constituency", icon: FiFlag },
+    {
+      key: "territorialConstituency",
+      label: "Territorial Constituency",
+      icon: FiLayers,
+    },
+    { key: "gpu", label: "GPU", icon: FiHome },
+    { key: "ward", label: "Ward", icon: FiHome },
+    { key: "voters", label: "Voters List", icon: FiUsers },
+    { key: "votersFilters", label: "Voters Filters", icon: FiFilter },
+    { key: "addVoters", label: "Add Voters", icon: FiUserPlus },
+  ];
 
   // Add handleLogout function
   const handleLogout = () => {
@@ -85,21 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Navigation */}
         <nav className="mt-4 lg:mt-6 space-y-1 text-sm">
-          {[
-            { key: "dashboard", label: "Dashboard", icon: FiBarChart2 },
-            { key: "district", label: "District", icon: FiMap },
-            { key: "constituency", label: "Constituency", icon: FiFlag },
-            {
-              key: "territorialConstituency",
-              label: "Territorial Constituency",
-              icon: FiLayers,
-            },
-            { key: "gpu", label: "GPU", icon: FiHome },
-            { key: "ward", label: "Ward", icon: FiHome },
-            { key: "voters", label: "Voters List", icon: FiUsers },
-            { key: "votersFilters", label: "Voters Filters", icon: FiFilter },
-            { key: "addVoters", label: "Add Voters", icon: FiUserPlus },
-          ].map(({ key, label, icon: Icon }) => (
+          {navItems.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => {
