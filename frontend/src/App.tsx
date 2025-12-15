@@ -2,15 +2,12 @@ import { useState } from "react";
 import MobileHeader from "./components/MobileHeader";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
-import VotersList from "./pages/VotersList";
 import "./App.css";
 import AddVoters from "./pages/AddVoters";
-import VoterFilters from "./pages/VoterFIlters";
 import AddConstituency from "./pages/AddConstituency";
 import AddTC from "./pages/AddTC";
 import AddDistrict from "./pages/AddDistrict";
 import AddGpu from "./pages/AddGpu";
-import Footer from "./components/Footer";
 import AddWard from "./pages/AddWard";
 
 
@@ -22,12 +19,12 @@ const App: React.FC = () => {
 
 
 
-  function handleLogout(): void {
-    // Clear any authentication tokens or user data
-    localStorage.removeItem("authToken");
-    // Optionally, redirect to login page
-    window.location.href = "/login";
-  }
+  // function handleLogout(): void {
+  //   // Clear any authentication tokens or user data
+  //   localStorage.removeItem("authToken");
+  //   // Optionally, redirect to login page
+  //   window.location.href = "/login";
+  // }
 
   return (
 

@@ -1,4 +1,3 @@
-import type { Voter } from "./types";
 
 export const districtData = [
   { district: "East Sikkim", voters: 4 },

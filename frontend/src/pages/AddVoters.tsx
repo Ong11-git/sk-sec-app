@@ -14,8 +14,8 @@ export default function AddVoters() {
   const [tcs, setTcs] = useState<any[]>([]);
   const [gpus, setGpus] = useState<any[]>([]);
   const [wards, setWards] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [setLoading] = useState(true);
+  const [setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [areaType, setAreaType] = useState<"Rural" | "Urban">("Rural");
@@ -215,7 +215,7 @@ const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     setAreaType("Rural");
 
     // Close modal
-    document.getElementById("add_voter_modal")?.close();
+    (document.getElementById("add_voter_modal") as HTMLDialogElement)?.close();
 
   } catch (err: any) {
     console.error("Upload error:", err);

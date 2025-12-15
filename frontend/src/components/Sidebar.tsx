@@ -3,14 +3,11 @@ import {
   FiMap,
   FiFlag,
   FiLayers,
-  FiUsers,
-  FiFilter,
   FiUserPlus,
   FiX,
   FiHome,
 } from "react-icons/fi";
 import type { SidebarProps } from "../types";
-import Logout from "./Logout";
 import Footer from "./Footer";
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -86,19 +83,19 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* Navigation */}
         <nav className="mt-4 lg:mt-6 space-y-1 text-sm">
           {[
-            { key: "dashboard", label: "Dashboard", icon: FiBarChart2 },
-            { key: "district", label: "District", icon: FiMap },
-            { key: "constituency", label: "Constituency", icon: FiFlag },
+            { key: "dashboard" as const, label: "Dashboard", icon: FiBarChart2 },
+            { key: "district" as const, label: "District", icon: FiMap },
+            { key: "constituency" as const, label: "Constituency", icon: FiFlag },
             {
-              key: "territorialConstituency",
+              key: "territorialConstituency" as const,
               label: "Territorial Constituency",
               icon: FiLayers,
             },
-            { key: "gpu", label: "GPU", icon: FiHome },
-            { key: "ward", label: "Ward", icon: FiHome },
+            { key: "gpu" as const, label: "GPU", icon: FiHome },
+            { key: "ward" as const, label: "Ward", icon: FiHome },
             // { key: "voters", label: "Voters List", icon: FiUsers },
             // { key: "votersFilters", label: "Voters Filters", icon: FiFilter },
-            { key: "addVoters", label: "Add Voters", icon: FiUserPlus },
+            { key: "addVoters" as const, label: "Add Voters", icon: FiUserPlus },
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}

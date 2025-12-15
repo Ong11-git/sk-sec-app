@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { FiEdit, FiPlus, FiTrash } from "react-icons/fi";
 
 type District = { id: number; name: string };
-type Constituency = { id: number; name: string; constituencyNo: number };
-type TcItem = { id: number; tc_no: number; tc_name: string; constituencyId: number };
-type GpuItem = { id: number; gpu_no: number; gpu_name: string; tcId: number };
+type Constituency = { id: number; name: string; constituencyNo: number; district?: District };
+type TcItem = { id: number; tc_no: number; tc_name: string; constituencyId: number; constituency?: Constituency };
+type GpuItem = { id: number; gpu_no: number; gpu_name: string; tcId: number; tc?: TcItem };
 type WardItem = {
   id: number;
   ward_no: number;
@@ -260,7 +260,7 @@ export default function AddWard() {
                 <tr key={w.id} className="hover:bg-base-200/50">
                     {/* District (first item of array) */}
                     <td>
-                    {w.gpu?.tc?.constituency?.districts?.[0]?.name || "—"}
+                    {w.district?.name || w.gpu?.tc?.constituency?.district?.name || "—"}
                     </td>
 
                     {/* Constituency */}

@@ -238,7 +238,7 @@ export default function AddGpu() {
               currentItems.map((gpu) => (
                 <tr key={gpu.id} className="hover:bg-base-200/50">
                   <td>{gpu.district?.name || "—"}</td>
-                  <td>{gpu.constituency?.name || gpu.tc?.constituency?.name || "—"}</td>
+                  <td>{gpu.constituency?.name || "—"}</td>
                   <td>{gpu.tc ? `${gpu.tc.tc_no} - ${gpu.tc.tc_name}` : "—"}</td>
                   <td>{gpu.gpu_no}</td>
                   <td>{gpu.gpu_name}</td>

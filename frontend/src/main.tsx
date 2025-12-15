@@ -6,7 +6,7 @@ import { BrowserRouter, Route } from "react-router";
 import { Routes } from "react-router";
 import ProtectedRoute from "./routes/ProtectedRoute.tsx";
 import Login from "./pages/Login.tsx";
-import toast, { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
