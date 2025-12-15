@@ -14,11 +14,11 @@ export interface Voter {
   tcNo?: string | null;
   wardName?: string | null;
   wardNo?: string | null;
-  district:{
-    name?:string|null
-  }
-  constituency:{
-    name?: string |null
+  district: {
+    name?: string | null;
+  };
+  constituency: {
+    name?: string | null;
   };
 }
 
@@ -37,7 +37,26 @@ export interface ChartCardProps {
 export interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  activeTab: "dashboard" | "voters" | "addVoters" | "votersFilters" | "constituency" | "territorialConstituency" | "district"|"gpu" |"ward";
-  onTabChange: (tab: "dashboard" | "voters" | "addVoters" |"votersFilters"|"constituency"|"territorialConstituency" | "district"|"gpu"|"ward") => void;
+  activeTab:
+    | "dashboard"
+    | "voters"
+    | "addVoters"
+    | "votersFilters"
+    | "constituency"
+    | "territorialConstituency"
+    | "district"
+    | "gpu"
+    | "ward";
+  onTabChange: (
+    tab:
+      | "dashboard"
+      | "voters"
+      | "addVoters"
+      | "votersFilters"
+      | "constituency"
+      | "territorialConstituency"
+      | "district"
+      | "gpu"
+      | "ward"
+  ) => void;
 }
-  

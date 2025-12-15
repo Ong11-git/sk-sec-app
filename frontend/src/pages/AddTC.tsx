@@ -48,9 +48,12 @@ export default function TC() {
   const fetchDistricts = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/districts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/districts`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!res.ok) throw new Error("Failed to fetch districts");
       setDistricts(await res.json());
     } catch (err: any) {
@@ -77,7 +80,9 @@ export default function TC() {
     try {
       const token = sessionStorage.getItem("token");
       const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/constituencies/by-district/${districtId}`,
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/constituencies/by-district/${districtId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!res.ok) throw new Error("Failed to fetch constituencies");
@@ -177,22 +182,26 @@ export default function TC() {
     <div className="p-4 lg:p-6">
       {/* TC Table */}
       <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
-        <h2 className="text-lg font-bold m-4">List of Territorial Constituencies of Sikkim</h2>
-         <div className="flex justify-end mt-4">
-        <button
-          className="btn btn-outline btn-success mr-10 btn-xs"
-          onClick={() => {
-            setEditingId(null);
-            setName("");
-            setTcNo("");
-            setSelectedDistrict("");
-            setSelectedConstituency("");
-            (document.getElementById("add_tc_modal") as HTMLDialogElement)?.showModal();
-          }}
-        >
-          <FiPlus size={14} /> New Territorial Constituency
-        </button>
-      </div>
+        <h2 className="text-lg font-bold m-4">
+          List of Territorial Constituencies of Sikkim
+        </h2>
+        <div className="flex justify-end mt-4">
+          <button
+            className="btn btn-outline btn-success mr-10 btn-xs"
+            onClick={() => {
+              setEditingId(null);
+              setName("");
+              setTcNo("");
+              setSelectedDistrict("");
+              setSelectedConstituency("");
+              (
+                document.getElementById("add_tc_modal") as HTMLDialogElement
+              )?.showModal();
+            }}
+          >
+            <FiPlus size={14} /> New Territorial Constituency
+          </button>
+        </div>
         <table className="table">
           <thead>
             <tr>
@@ -233,7 +242,10 @@ export default function TC() {
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="text-center text-gray-500 italic py-4">
+                <td
+                  colSpan={4}
+                  className="text-center text-gray-500 italic py-4"
+                >
                   No data available
                 </td>
               </tr>
@@ -298,7 +310,9 @@ export default function TC() {
           <button
             className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
             onClick={() =>
-              (document.getElementById("add_tc_modal") as HTMLDialogElement)?.close()
+              (
+                document.getElementById("add_tc_modal") as HTMLDialogElement
+              )?.close()
             }
           >
             ✕
@@ -385,7 +399,10 @@ export default function TC() {
             </div>
 
             <div className="modal-action">
-              <button type="submit" className="btn btn-success text-white btn-sm">
+              <button
+                type="submit"
+                className="btn btn-success text-white btn-sm"
+              >
                 <Save size={14} /> {editingId ? "Update" : "Save"}
               </button>
             </div>
@@ -406,7 +423,10 @@ export default function TC() {
               >
                 Yes, Delete
               </button>
-              <button className="btn btn-sm btn-outline" onClick={() => setDeleteId(null)}>
+              <button
+                className="btn btn-sm btn-outline"
+                onClick={() => setDeleteId(null)}
+              >
                 Cancel
               </button>
             </div>

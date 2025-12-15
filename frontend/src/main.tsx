@@ -6,18 +6,16 @@ import { BrowserRouter, Route } from "react-router";
 import { Routes } from "react-router";
 import ProtectedRoute from "./routes/ProtectedRoute.tsx";
 import Login from "./pages/Login.tsx";
-import { Toaster } from "react-hot-toast";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Toaster />
     <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<Login />} />
-      <Route element={<ProtectedRoute/>}>
-         <Route path="/dashboard" element={<App/>}/>
-      </Route>
-    </Routes>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<App />} />
+        </Route>
+      </Routes>
     </BrowserRouter>
   </StrictMode>
 );

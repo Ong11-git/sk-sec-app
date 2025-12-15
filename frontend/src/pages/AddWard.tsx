@@ -3,9 +3,26 @@ import { useEffect, useState } from "react";
 import { FiEdit, FiPlus, FiTrash } from "react-icons/fi";
 
 type District = { id: number; name: string };
-type Constituency = { id: number; name: string; constituencyNo: number; district?: District };
-type TcItem = { id: number; tc_no: number; tc_name: string; constituencyId: number; constituency?: Constituency };
-type GpuItem = { id: number; gpu_no: number; gpu_name: string; tcId: number; tc?: TcItem };
+type Constituency = {
+  id: number;
+  name: string;
+  constituencyNo: number;
+  districts?: District[];
+};
+type TcItem = {
+  id: number;
+  tc_no: number;
+  tc_name: string;
+  constituencyId: number;
+  constituency?: Constituency;
+};
+type GpuItem = {
+  id: number;
+  gpu_no: number;
+  gpu_name: string;
+  tcId: number;
+  tc?: TcItem; // Add this based on your usage
+};
 type WardItem = {
   id: number;
   ward_no: number;
@@ -15,8 +32,6 @@ type WardItem = {
   constituency?: Constituency;
   district?: District;
 };
-
-
 
 export default function AddWard() {
   const [districts, setDistricts] = useState<District[]>([]);
@@ -39,8 +54,6 @@ export default function AddWard() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | undefined>();
 
- 
-
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -58,9 +71,12 @@ export default function AddWard() {
   const fetchDistricts = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/districts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/districts`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setDistricts(await res.json());
     } catch (err: any) {
       setError(err.message);
@@ -71,7 +87,9 @@ export default function AddWard() {
     try {
       const token = sessionStorage.getItem("token");
       const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/constituencies/by-district/${districtId}`,
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/constituencies/by-district/${districtId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await res.json();
@@ -81,31 +99,32 @@ export default function AddWard() {
     }
   };
 
-    const fetchTcs = async (constituencyId: string) => {
+  const fetchTcs = async (constituencyId: string) => {
     try {
-        const token = sessionStorage.getItem("token");
-        const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/tcs/by-constituency/${constituencyId}`,
+      const token = sessionStorage.getItem("token");
+      const res = await fetch(
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/tcs/by-constituency/${constituencyId}`,
         { headers: { Authorization: `Bearer ${token}` } }
-        );
+      );
 
-        console.log("Fetch TCs response:", res);
+      console.log("Fetch TCs response:", res);
 
-        if (!res.ok) {
+      if (!res.ok) {
         const text = await res.text(); // log raw response
         console.error("Failed response:", text);
         throw new Error("Failed to fetch TCs");
-        }
+      }
 
-        const data = await res.json();
-        setTcs(data);
-        return data;
+      const data = await res.json();
+      setTcs(data);
+      return data;
     } catch (err: any) {
-        setError(err.message);
-        return [];
+      setError(err.message);
+      return [];
     }
-    };
-
+  };
 
   const fetchGpus = async (tcId: string) => {
     try {
@@ -128,7 +147,7 @@ export default function AddWard() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      console.log(data);
+      console.log("Wards data:", data); // Log to check structure
       setWards(data);
     } catch (err: any) {
       setError(err.message);
@@ -136,8 +155,6 @@ export default function AddWard() {
       setLoading(false);
     }
   };
-
-
 
   const resetForm = () => {
     setSelectedDistrict("");
@@ -150,13 +167,23 @@ export default function AddWard() {
     setConstituencies([]);
     setTcs([]);
     setGpus([]);
-    (document.getElementById("add_ward_modal") as HTMLDialogElement)?.close();
+    const modal = document.getElementById(
+      "add_ward_modal"
+    ) as HTMLDialogElement;
+    if (modal) modal.close();
   };
 
   const handleSave = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      if (!selectedDistrict || !selectedConstituency || !selectedTc || !selectedGpu || !wardNo || !wardName) {
+      if (
+        !selectedDistrict ||
+        !selectedConstituency ||
+        !selectedTc ||
+        !selectedGpu ||
+        !wardNo ||
+        !wardName
+      ) {
         setError("Please fill all fields");
         return;
       }
@@ -194,13 +221,20 @@ export default function AddWard() {
   const handleDelete = async (id: number) => {
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/wards/delete/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/wards/delete/${id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!res.ok) throw new Error("Failed to delete Ward");
       setWards((prev) => prev.filter((w) => w.id !== id));
       setDeleteId(null);
+      const modal = document.getElementById(
+        "delete_modal"
+      ) as HTMLDialogElement;
+      if (modal) modal.close();
     } catch (err: any) {
       alert(err.message);
     }
@@ -211,18 +245,48 @@ export default function AddWard() {
     setWardNo(ward.ward_no);
     setWardName(ward.ward_name);
 
-    if (ward.district && ward.constituency && ward.tc && ward.gpu) {
-      setSelectedDistrict(String(ward.district.id));
-      await fetchConstituencies(String(ward.district.id));
-      setSelectedConstituency(String(ward.constituency.id));
-      await fetchTcs(String(ward.constituency.id));
-      setSelectedTc(String(ward.tc.id));
-      await fetchGpus(String(ward.tc.id));
-      setSelectedGpu(String(ward.gpu.id));
+    // Try to get data from nested structure
+    const districtId =
+      ward.district?.id || ward.gpu?.tc?.constituency?.districts?.[0]?.id;
+    const constituencyId =
+      ward.constituency?.id || ward.gpu?.tc?.constituency?.id;
+    const tcId = ward.tc?.id || ward.gpu?.tc?.id;
+    const gpuId = ward.gpu?.id;
+
+    if (districtId) {
+      setSelectedDistrict(String(districtId));
+      await fetchConstituencies(String(districtId));
     }
 
-    (document.getElementById("add_ward_modal") as HTMLDialogElement)?.showModal();
+    if (constituencyId) {
+      setSelectedConstituency(String(constituencyId));
+      await fetchTcs(String(constituencyId));
+    }
+
+    if (tcId) {
+      setSelectedTc(String(tcId));
+      await fetchGpus(String(tcId));
+    }
+
+    if (gpuId) {
+      setSelectedGpu(String(gpuId));
+    }
+
+    const modal = document.getElementById(
+      "add_ward_modal"
+    ) as HTMLDialogElement;
+    if (modal) modal.showModal();
   };
+
+  useEffect(() => {
+    // Show delete modal when deleteId is set
+    if (deleteId) {
+      const modal = document.getElementById(
+        "delete_modal"
+      ) as HTMLDialogElement;
+      if (modal) modal.showModal();
+    }
+  }, [deleteId]);
 
   if (loading) return <p className="p-4 text-sm">Loading...</p>;
 
@@ -236,7 +300,10 @@ export default function AddWard() {
             className="btn btn-outline btn-success mr-10 btn-xs"
             onClick={() => {
               resetForm();
-              (document.getElementById("add_ward_modal") as HTMLDialogElement)?.showModal();
+              const modal = document.getElementById(
+                "add_ward_modal"
+              ) as HTMLDialogElement;
+              if (modal) modal.showModal();
             }}
           >
             <FiPlus size={14} /> New Ward
@@ -256,85 +323,92 @@ export default function AddWard() {
           </thead>
           <tbody className="bg-base-100 divide-y divide-base-200 text-xs">
             {currentItems.length > 0 ? (
-                currentItems.map((w) => (
+              currentItems.map((w) => (
                 <tr key={w.id} className="hover:bg-base-200/50">
-                    {/* District (first item of array) */}
-                    <td>
-                    {w.district?.name || w.gpu?.tc?.constituency?.district?.name || "—"}
-                    </td>
+                  {/* District */}
+                  <td>
+                    {w.district?.name ||
+                      w.gpu?.tc?.constituency?.districts?.[0]?.name ||
+                      "—"}
+                  </td>
 
-                    {/* Constituency */}
-                    <td>
-                    {w.gpu?.tc?.constituency
-                        ? `${w.gpu.tc.constituency.constituencyNo} - ${w.gpu.tc.constituency.name}`
-                        : "—"}
-                    </td>
+                  {/* Constituency */}
+                  <td>
+                    {w.constituency
+                      ? `${w.constituency.constituencyNo} - ${w.constituency.name}`
+                      : w.gpu?.tc?.constituency
+                      ? `${w.gpu.tc.constituency.constituencyNo} - ${w.gpu.tc.constituency.name}`
+                      : "—"}
+                  </td>
 
-                    {/* TC */}
-                    <td>
-                    {w.gpu?.tc
-                        ? `${w.gpu.tc.tc_no} - ${w.gpu.tc.tc_name}`
-                        : "—"}
-                    </td>
+                  {/* TC */}
+                  <td>
+                    {w.tc
+                      ? `${w.tc.tc_no} - ${w.tc.tc_name}`
+                      : w.gpu?.tc
+                      ? `${w.gpu.tc.tc_no} - ${w.gpu.tc.tc_name}`
+                      : "—"}
+                  </td>
 
-                    {/* GPU */}
-                    <td>
-                    {w.gpu
-                        ? `${w.gpu.gpu_no} - ${w.gpu.gpu_name}`
-                        : "—"}
-                    </td>
-                    {/* Ward */}
-                    <td>
+                  {/* GPU */}
+                  <td>{w.gpu ? `${w.gpu.gpu_no} - ${w.gpu.gpu_name}` : "—"}</td>
+
+                  {/* Ward */}
+                  <td>
                     {w.ward_no && w.ward_name
-                        ? `${w.ward_no} - ${w.ward_name}`
-                        : "—"}
-                    </td>
+                      ? `${w.ward_no} - ${w.ward_name}`
+                      : "—"}
+                  </td>
 
-                    {/* Actions */}
-                    <td className="flex gap-2">
+                  {/* Actions */}
+                  <td className="flex gap-2">
                     <button
-                        className="btn btn-xs btn-outline btn-warning"
-                        onClick={() => handleEdit(w)}
+                      className="btn btn-xs btn-outline btn-warning"
+                      onClick={() => handleEdit(w)}
                     >
-                        <FiEdit size={14} /> Edit
+                      <FiEdit size={14} /> Edit
                     </button>
                     <button
-                        className="btn btn-xs btn-outline btn-error"
-                        onClick={() => setDeleteId(w.id)}
+                      className="btn btn-xs btn-outline btn-error"
+                      onClick={() => setDeleteId(w.id)}
                     >
-                        <FiTrash size={14} /> Delete
+                      <FiTrash size={14} /> Delete
                     </button>
-                    </td>
+                  </td>
                 </tr>
-                ))
+              ))
             ) : (
-                <tr>
+              <tr>
                 <td
-                    colSpan={7}
-                    className="text-center text-gray-500 italic py-4"
+                  colSpan={6}
+                  className="text-center text-gray-500 italic py-4"
                 >
-                    No Wards available
+                  No Wards available
                 </td>
-                </tr>
+              </tr>
             )}
-            </tbody>
+          </tbody>
         </table>
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center mt-4">
-        <div className="join">
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              className={`text-green join-item btn btn-sm ${currentPage === i + 1 ? "btn-active" : ""}`}
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <div className="join">
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i}
+                className={`text-green join-item btn btn-sm ${
+                  currentPage === i + 1 ? "btn-active" : ""
+                }`}
+                onClick={() => setCurrentPage(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Toasts */}
       {successMsg && (
@@ -357,11 +431,18 @@ export default function AddWard() {
         <div className="modal-box">
           <button
             className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-            onClick={() => (document.getElementById("add_ward_modal") as HTMLDialogElement)?.close()}
+            onClick={() => {
+              const modal = document.getElementById(
+                "add_ward_modal"
+              ) as HTMLDialogElement;
+              if (modal) modal.close();
+            }}
           >
             ✕
           </button>
-          <h3 className="font-bold text-lg">{editingId ? "Edit Ward" : "Add New Ward"}</h3>
+          <h3 className="font-bold text-lg">
+            {editingId ? "Edit Ward" : "Add New Ward"}
+          </h3>
 
           <form
             className="w-full max-w-md space-y-3"
@@ -372,7 +453,9 @@ export default function AddWard() {
           >
             {/* District */}
             <div>
-              <label className="label"><span className="label-text">District</span></label>
+              <label className="label">
+                <span className="label-text">District</span>
+              </label>
               <select
                 className="select select-bordered select-sm w-full"
                 value={selectedDistrict}
@@ -384,17 +467,22 @@ export default function AddWard() {
                   setSelectedGpu("");
                   if (districtId) await fetchConstituencies(districtId);
                 }}
+                required
               >
                 <option value="">-- Select District --</option>
                 {districts.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             {/* Constituency */}
             <div>
-              <label className="label"><span className="label-text">Constituency</span></label>
+              <label className="label">
+                <span className="label-text">Constituency</span>
+              </label>
               <select
                 className="select select-bordered select-sm w-full"
                 value={selectedConstituency}
@@ -405,17 +493,23 @@ export default function AddWard() {
                   setSelectedGpu("");
                   if (constituencyId) await fetchTcs(constituencyId);
                 }}
+                required
+                disabled={!selectedDistrict}
               >
                 <option value="">-- Select Constituency --</option>
                 {constituencies.map((c) => (
-                  <option key={c.id} value={c.id}>{c.constituencyNo} - {c.name}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.constituencyNo} - {c.name}
+                  </option>
                 ))}
               </select>
             </div>
-            
+
             {/* TC */}
             <div>
-              <label className="label"><span className="label-text">TC</span></label>
+              <label className="label">
+                <span className="label-text">TC</span>
+              </label>
               <select
                 className="select select-bordered select-sm w-full"
                 value={selectedTc}
@@ -425,48 +519,65 @@ export default function AddWard() {
                   setSelectedGpu("");
                   if (tcId) await fetchGpus(tcId);
                 }}
+                required
+                disabled={!selectedConstituency}
               >
                 <option value="">-- Select TC --</option>
                 {tcs.map((t) => (
-                  <option key={t.id} value={t.id}>{t.tc_no} - {t.tc_name}</option>
+                  <option key={t.id} value={t.id}>
+                    {t.tc_no} - {t.tc_name}
+                  </option>
                 ))}
               </select>
             </div>
 
             {/* GPU */}
             <div>
-              <label className="label"><span className="label-text">GPU</span></label>
+              <label className="label">
+                <span className="label-text">GPU</span>
+              </label>
               <select
                 className="select select-bordered select-sm w-full"
                 value={selectedGpu}
                 onChange={(e) => setSelectedGpu(e.target.value)}
+                required
+                disabled={!selectedTc}
               >
                 <option value="">-- Select GPU --</option>
                 {gpus.map((g) => (
-                  <option key={g.id} value={g.id}>{g.gpu_no} - {g.gpu_name}</option>
+                  <option key={g.id} value={g.id}>
+                    {g.gpu_no} - {g.gpu_name}
+                  </option>
                 ))}
               </select>
             </div>
 
             {/* Ward No */}
             <div>
-              <label className="label"><span className="label-text">Ward No</span></label>
+              <label className="label">
+                <span className="label-text">Ward No</span>
+              </label>
               <input
                 type="number"
                 className="input input-bordered input-sm w-full"
                 value={wardNo}
                 onChange={(e) => setWardNo(Number(e.target.value))}
+                required
+                min="1"
               />
             </div>
 
             {/* Ward Name */}
             <div>
-              <label className="label"><span className="label-text">Ward Name</span></label>
+              <label className="label">
+                <span className="label-text">Ward Name</span>
+              </label>
               <input
                 type="text"
                 className="input input-bordered input-sm w-full"
                 value={wardName}
                 onChange={(e) => setWardName(e.target.value)}
+                required
               />
             </div>
 
@@ -488,14 +599,19 @@ export default function AddWard() {
               className="btn btn-error"
               onClick={() => {
                 if (deleteId) handleDelete(deleteId);
-                (document.getElementById("delete_modal") as HTMLDialogElement)?.close();
               }}
             >
               Delete
             </button>
             <button
               className="btn btn-ghost"
-              onClick={() => (document.getElementById("delete_modal") as HTMLDialogElement)?.close()}
+              onClick={() => {
+                setDeleteId(null);
+                const modal = document.getElementById(
+                  "delete_modal"
+                ) as HTMLDialogElement;
+                if (modal) modal.close();
+              }}
             >
               Cancel
             </button>

@@ -3,8 +3,19 @@ import { useEffect, useState } from "react";
 import { FiEdit, FiPlus, FiTrash } from "react-icons/fi";
 
 type District = { id: number; name: string };
-type Constituency = { id: number; name: string; constituencyNo: number };
-type TcItem = { id: number; tc_no: number; tc_name: string; constituencyId: number };
+type Constituency = {
+  id: number;
+  name: string;
+  constituencyNo: number;
+  districts?: District[];
+};
+type TcItem = {
+  id: number;
+  tc_no: number;
+  tc_name: string;
+  constituencyId: number;
+  constituency?: Constituency; // Add this
+};
 type GpuItem = {
   id: number;
   gpu_no: number;
@@ -50,9 +61,12 @@ export default function AddGpu() {
   const fetchDistricts = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/districts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/districts`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!res.ok) throw new Error("Failed to fetch districts");
       setDistricts(await res.json());
     } catch (err: any) {
@@ -64,7 +78,9 @@ export default function AddGpu() {
     try {
       const token = sessionStorage.getItem("token");
       const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/constituencies/by-district/${districtId}`,
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/constituencies/by-district/${districtId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!res.ok) throw new Error("Failed to fetch constituencies");
@@ -81,7 +97,9 @@ export default function AddGpu() {
     try {
       const token = sessionStorage.getItem("token");
       const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/tcs/by-constituency/${constituencyId}`,
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/tcs/by-constituency/${constituencyId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!res.ok) throw new Error("Failed to fetch TCs");
@@ -102,6 +120,7 @@ export default function AddGpu() {
       });
       if (!res.ok) throw new Error("Failed to fetch GPUs");
       const data = await res.json();
+      console.log("GPUs data:", data); // Check the actual structure
       setGpus(data);
     } catch (err: any) {
       setError(err.message);
@@ -119,13 +138,20 @@ export default function AddGpu() {
     setEditingId(null);
     setConstituencies([]);
     setTcs([]);
-    (document.getElementById("add_gpu_modal") as HTMLDialogElement)?.close();
+    const modal = document.getElementById("add_gpu_modal") as HTMLDialogElement;
+    if (modal) modal.close();
   };
 
   const handleSave = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      if (!selectedDistrict || !selectedConstituency || !selectedTc || !gpuNo || !gpuName) {
+      if (
+        !selectedDistrict ||
+        !selectedConstituency ||
+        !selectedTc ||
+        !gpuNo ||
+        !gpuName
+      ) {
         setError("Please fill all fields");
         return;
       }
@@ -164,13 +190,20 @@ export default function AddGpu() {
   const handleDelete = async (id: number) => {
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/gpus/delete/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/gpus/delete/${id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!res.ok) throw new Error("Failed to delete GPU");
       setGpus((prev) => prev.filter((g) => g.id !== id));
       setDeleteId(null);
+      const modal = document.getElementById(
+        "delete_modal"
+      ) as HTMLDialogElement;
+      if (modal) modal.close();
     } catch (err: any) {
       alert(err.message || "Something went wrong while deleting");
     }
@@ -182,26 +215,46 @@ export default function AddGpu() {
     setGpuNo(gpu.gpu_no);
     setGpuName(gpu.gpu_name);
 
-    if (gpu.tc && gpu.tc.constituencyId) {
-      const constituencyId = String(gpu.tc.constituencyId);
+    // Try to get data from different possible structures
+    const districtId =
+      gpu.district?.id ||
+      gpu.constituency?.districts?.[0]?.id ||
+      gpu.tc?.constituency?.districts?.[0]?.id;
 
-      // 1️⃣ Set district if available
-      const districtId = gpu.district ? String(gpu.district.id) : "";
-      setSelectedDistrict(districtId);
+    const constituencyId =
+      gpu.constituency?.id ||
+      gpu.tc?.constituency?.id ||
+      gpu.tc?.constituencyId;
 
-      // 2️⃣ Fetch constituencies for the district
-      if (districtId) {
-        await fetchConstituencies(districtId);
-        setSelectedConstituency(constituencyId);
+    const tcId = gpu.tc?.id;
 
-        // 3️⃣ Fetch TCs for the constituency
-        await fetchTcs(constituencyId);
-        setSelectedTc(String(gpu.tc.id));
-      }
+    if (districtId) {
+      setSelectedDistrict(String(districtId));
+      await fetchConstituencies(String(districtId));
     }
 
-    (document.getElementById("add_gpu_modal") as HTMLDialogElement)?.showModal();
+    if (constituencyId) {
+      setSelectedConstituency(String(constituencyId));
+      await fetchTcs(String(constituencyId));
+    }
+
+    if (tcId) {
+      setSelectedTc(String(tcId));
+    }
+
+    const modal = document.getElementById("add_gpu_modal") as HTMLDialogElement;
+    if (modal) modal.showModal();
   };
+
+  useEffect(() => {
+    // Show delete modal when deleteId is set
+    if (deleteId) {
+      const modal = document.getElementById(
+        "delete_modal"
+      ) as HTMLDialogElement;
+      if (modal) modal.showModal();
+    }
+  }, [deleteId]);
 
   if (loading) return <p className="p-4 text-sm">Loading...</p>;
 
@@ -215,7 +268,10 @@ export default function AddGpu() {
             className="btn btn-outline btn-success mr-10 btn-xs"
             onClick={() => {
               resetForm();
-              (document.getElementById("add_gpu_modal") as HTMLDialogElement)?.showModal();
+              const modal = document.getElementById(
+                "add_gpu_modal"
+              ) as HTMLDialogElement;
+              if (modal) modal.showModal();
             }}
           >
             <FiPlus size={14} /> New GPU
@@ -237,9 +293,22 @@ export default function AddGpu() {
             {currentItems.length > 0 ? (
               currentItems.map((gpu) => (
                 <tr key={gpu.id} className="hover:bg-base-200/50">
-                  <td>{gpu.district?.name || "—"}</td>
-                  <td>{gpu.constituency?.name || "—"}</td>
-                  <td>{gpu.tc ? `${gpu.tc.tc_no} - ${gpu.tc.tc_name}` : "—"}</td>
+                  <td>
+                    {gpu.district?.name ||
+                      gpu.constituency?.districts?.[0]?.name ||
+                      gpu.tc?.constituency?.districts?.[0]?.name ||
+                      "—"}
+                  </td>
+                  <td>
+                    {gpu.constituency
+                      ? `${gpu.constituency.constituencyNo} - ${gpu.constituency.name}`
+                      : gpu.tc?.constituency
+                      ? `${gpu.tc.constituency.constituencyNo} - ${gpu.tc.constituency.name}`
+                      : "—"}
+                  </td>
+                  <td>
+                    {gpu.tc ? `${gpu.tc.tc_no} - ${gpu.tc.tc_name}` : "—"}
+                  </td>
                   <td>{gpu.gpu_no}</td>
                   <td>{gpu.gpu_name}</td>
                   <td className="flex gap-2">
@@ -260,7 +329,10 @@ export default function AddGpu() {
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="text-center text-gray-500 italic py-4">
+                <td
+                  colSpan={6}
+                  className="text-center text-gray-500 italic py-4"
+                >
                   No GPUs available
                 </td>
               </tr>
@@ -270,19 +342,23 @@ export default function AddGpu() {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center mt-4">
-        <div className="join">
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              className={`text-green join-item btn btn-sm ${currentPage === i + 1 ? "btn-active" : ""}`}
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <div className="join">
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i}
+                className={`text-green join-item btn btn-sm ${
+                  currentPage === i + 1 ? "btn-active" : ""
+                }`}
+                onClick={() => setCurrentPage(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Toasts */}
       {successMsg && (
@@ -305,11 +381,18 @@ export default function AddGpu() {
         <div className="modal-box">
           <button
             className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-            onClick={() => (document.getElementById("add_gpu_modal") as HTMLDialogElement)?.close()}
+            onClick={() => {
+              const modal = document.getElementById(
+                "add_gpu_modal"
+              ) as HTMLDialogElement;
+              if (modal) modal.close();
+            }}
           >
             ✕
           </button>
-          <h3 className="font-bold text-lg">{editingId ? "Edit GPU" : "Add New GPU"}</h3>
+          <h3 className="font-bold text-lg">
+            {editingId ? "Edit GPU" : "Add New GPU"}
+          </h3>
 
           <form
             className="w-full max-w-md space-y-3"
@@ -320,7 +403,9 @@ export default function AddGpu() {
           >
             {/* District */}
             <div>
-              <label className="label"><span className="label-text">District</span></label>
+              <label className="label">
+                <span className="label-text">District</span>
+              </label>
               <select
                 className="select select-bordered select-sm w-full"
                 value={selectedDistrict}
@@ -331,17 +416,22 @@ export default function AddGpu() {
                   setSelectedTc("");
                   if (districtId) await fetchConstituencies(districtId);
                 }}
+                required
               >
                 <option value="">-- Select District --</option>
                 {districts.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             {/* Constituency */}
             <div>
-              <label className="label"><span className="label-text">Constituency</span></label>
+              <label className="label">
+                <span className="label-text">Constituency</span>
+              </label>
               <select
                 className="select select-bordered select-sm w-full"
                 value={selectedConstituency}
@@ -351,48 +441,65 @@ export default function AddGpu() {
                   setSelectedTc("");
                   if (constituencyId) await fetchTcs(constituencyId);
                 }}
+                required
+                disabled={!selectedDistrict}
               >
                 <option value="">-- Select Constituency --</option>
                 {constituencies.map((c) => (
-                  <option key={c.id} value={c.id}>{c.constituencyNo} - {c.name}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.constituencyNo} - {c.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             {/* TC */}
             <div>
-              <label className="label"><span className="label-text">TC</span></label>
+              <label className="label">
+                <span className="label-text">TC</span>
+              </label>
               <select
                 className="select select-bordered select-sm w-full"
                 value={selectedTc}
                 onChange={(e) => setSelectedTc(e.target.value)}
+                required
+                disabled={!selectedConstituency}
               >
                 <option value="">-- Select TC --</option>
                 {tcs.map((t) => (
-                  <option key={t.id} value={t.id}>{t.tc_no} - {t.tc_name}</option>
+                  <option key={t.id} value={t.id}>
+                    {t.tc_no} - {t.tc_name}
+                  </option>
                 ))}
               </select>
             </div>
 
             {/* GPU No */}
             <div>
-              <label className="label"><span className="label-text">GPU No</span></label>
+              <label className="label">
+                <span className="label-text">GPU No</span>
+              </label>
               <input
                 type="number"
                 className="input input-bordered input-sm w-full"
                 value={gpuNo}
                 onChange={(e) => setGpuNo(Number(e.target.value))}
+                required
+                min="1"
               />
             </div>
 
             {/* GPU Name */}
             <div>
-              <label className="label"><span className="label-text">GPU Name</span></label>
+              <label className="label">
+                <span className="label-text">GPU Name</span>
+              </label>
               <input
                 type="text"
                 className="input input-bordered input-sm w-full"
                 value={gpuName}
                 onChange={(e) => setGpuName(e.target.value)}
+                required
               />
             </div>
 
@@ -414,14 +521,19 @@ export default function AddGpu() {
               className="btn btn-error"
               onClick={() => {
                 if (deleteId) handleDelete(deleteId);
-                (document.getElementById("delete_modal") as HTMLDialogElement)?.close();
               }}
             >
               Delete
             </button>
             <button
               className="btn btn-ghost"
-              onClick={() => (document.getElementById("delete_modal") as HTMLDialogElement)?.close()}
+              onClick={() => {
+                setDeleteId(null);
+                const modal = document.getElementById(
+                  "delete_modal"
+                ) as HTMLDialogElement;
+                if (modal) modal.close();
+              }}
             >
               Cancel
             </button>

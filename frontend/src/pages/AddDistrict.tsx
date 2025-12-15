@@ -33,9 +33,12 @@ export default function AddDistrict() {
   const fetchDistricts = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/districts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/districts`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!res.ok) throw new Error("Failed to fetch districts");
       const data = await res.json();
       setDistricts(data);
@@ -127,21 +130,21 @@ export default function AddDistrict() {
       <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
         <h2 className="text-lg font-bold m-4">List of Districts of Sikkim</h2>
         <div className="flex justify-end mt-4">
-        <button
-          className="btn btn-outline btn-success mr-10 btn-xs"
-          onClick={() => {
-            setEditingId(null);
-            setName("");
-            (
-              document.getElementById(
-                "add_district_modal"
-              ) as HTMLDialogElement
-            )?.showModal();
-          }}
-        >
-          <FiPlus size={14} /> New District
-        </button>
-      </div>
+          <button
+            className="btn btn-outline btn-success mr-10 btn-xs"
+            onClick={() => {
+              setEditingId(null);
+              setName("");
+              (
+                document.getElementById(
+                  "add_district_modal"
+                ) as HTMLDialogElement
+              )?.showModal();
+            }}
+          >
+            <FiPlus size={14} /> New District
+          </button>
+        </div>
         <table className="table">
           <thead>
             <tr>
@@ -290,7 +293,10 @@ export default function AddDistrict() {
               >
                 Yes, Delete
               </button>
-              <button className="btn btn-sm btn-outline" onClick={() => setDeleteId(null)}>
+              <button
+                className="btn btn-sm btn-outline"
+                onClick={() => setDeleteId(null)}
+              >
                 Cancel
               </button>
             </div>

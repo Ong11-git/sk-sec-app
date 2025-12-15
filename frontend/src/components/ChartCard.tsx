@@ -1,12 +1,15 @@
 import type { ChartCardProps } from "../types";
+import { motion } from "framer-motion";
 
 const ChartCard: React.FC<ChartCardProps> = ({ title, children }) => (
-  <div className="bg-base-100 rounded-lg shadow-md p-4 lg:p-6">
-    <h3 className="text-base lg:text-lg font-semibold text-base-content mb-4">
-      {title}
-    </h3>
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="bg-white rounded-xl shadow-sm p-5"
+  >
+    <h3 className="text-base font-semibold text-gray-800 mb-4">{title}</h3>
     {children}
-  </div>
+  </motion.div>
 );
 
 export default ChartCard;

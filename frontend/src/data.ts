@@ -1,4 +1,3 @@
-
 export const districtData = [
   { district: "East Sikkim", voters: 4 },
   { district: "West Sikkim", voters: 2 },
