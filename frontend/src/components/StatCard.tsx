@@ -1,4 +1,5 @@
 import type { StatCardProps } from "../types";
+import { motion } from "framer-motion";
 
 const StatCard: React.FC<StatCardProps> = ({
   icon,
@@ -6,21 +7,20 @@ const StatCard: React.FC<StatCardProps> = ({
   value,
   colorClass,
 }) => (
-  <div
-    className={`bg-base-100 rounded-md shadow-sm p-2 lg:p-3 border-l-2 ${colorClass}`} // smaller padding + border
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    whileHover={{ y: -5 }}
+    className={`bg-white rounded-xl shadow-sm p-4 border-l-4 ${colorClass}`}
   >
-    <div className="flex flex-col lg:flex-row lg:items-center">
-      <div className="h-4 w-4 lg:h-5 lg:w-5 mb-1 lg:mb-0">{icon}</div> {/* smaller icon */}
-      <div className="lg:ml-2">
-        <p className="text-[10px] lg:text-xs font-medium text-base-content/60">
-          {title}
-        </p>
-        <p className="text-sm lg:text-base font-bold text-base-content">
-          {value}
-        </p>
+    <div className="flex items-center space-x-3">
+      <div className="p-2 rounded-lg bg-gray-50">{icon}</div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-gray-500 truncate">{title}</p>
+        <p className="text-xl font-bold text-gray-800 truncate">{value}</p>
       </div>
     </div>
-  </div>
+  </motion.div>
 );
 
 export default StatCard;
