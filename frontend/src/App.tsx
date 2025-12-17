@@ -10,7 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import VotersList from "./pages/VotersList";
 import "./App.css";
 import AddVoters from "./pages/AddVoters";
-import VoterFilters from "./pages/VoterFilters";
+import VoterFilters from "./pages/VoterFIlters";
 import AddConstituency from "./pages/AddConstituency";
 import AddTC from "./pages/AddTC";
 import AddDistrict from "./pages/AddDistrict";

@@ -21,7 +21,11 @@ interface AgeGroupData {
   count: number;
 }
 
-const Dashboard: React.FC = () => {
+interface DashboardProps {
+  sidebarCollapsed?: boolean;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ sidebarCollapsed: _ }) => {
   const [totalVoters, setTotalVoters] = useState<number | null>(null);
   const [totalConstituency, setTotalConstituency] = useState<number | null>(
     null
