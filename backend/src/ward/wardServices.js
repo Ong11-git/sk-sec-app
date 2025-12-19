@@ -43,6 +43,7 @@ export async function getAllWards() {
             districts: w.gpu.tc.constituency.districts.map((d) => ({
               id: d.district.id,
               name: d.district.name,
+              code: d.district.code,
             })),
           },
         },

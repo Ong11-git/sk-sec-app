@@ -19,6 +19,7 @@ export async function getAllTCs() {
                   select: {
                     id: true,
                     name: true,
+                    code: true,
                   },
                 },
               },
@@ -44,6 +45,7 @@ export async function getAllTCs() {
       districts: tc.constituency.districts.map((d) => ({
         id: d.district.id,
         name: d.district.name,
+        code: d.district.code,
       })),
     }));
   } catch (error) {

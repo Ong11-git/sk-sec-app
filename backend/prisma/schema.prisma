@@ -15,23 +15,32 @@ enum Role {
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  password  String   // hashed
+  password  String // hashed
   name      String?
   role      Role     @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+enum VoterStatus {
+  active
+  inactive
+  deleted
+}
+
 model Voter {
-  id           Int      @id @default(autoincrement())
-  epicNo       String   @unique
-  name         String
-  relationType String?
-  relationName String?
-  age          Int?
-  gender       String?
-  country      String?
-  state        String?
+  id            Int     @id @default(autoincrement())
+  epicNo        String  @unique
+  stateEpicNo   String? @unique
+  photo         String? // photo path / URL
+  name          String
+  relationType  String?
+  relationName  String?
+  age           Int?
+  gender        String?
+  casteCategory String? // OBC-State, OBC-Central, BL, ST, SC
+  country       String?
+  state         String?
 
   // ---- Shared ----
   districtId Int
@@ -54,13 +63,19 @@ model Voter {
   municipalityId  Int?
   municipalWardId Int?
 
-  municipality   Municipality?   @relation(fields: [municipalityId], references: [id])
-  municipalWard  MunicipalWard?  @relation(fields: [municipalWardId], references: [id])
+  municipality  Municipality?  @relation(fields: [municipalityId], references: [id])
+  municipalWard MunicipalWard? @relation(fields: [municipalWardId], references: [id])
+
+  // ---- Status & Timestamps ----
+  status    VoterStatus @default(active)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @default(now()) @updatedAt
 }
 
 model District {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id   Int     @id @default(autoincrement())
+  code String? @unique
+  name String  @unique
 
   voters         Voter[]
   municipalities Municipality[]
@@ -70,15 +85,15 @@ model District {
 }
 
 model Constituency {
-  id   Int    @id @default(autoincrement())
-  constituencyNo Int @unique
-  name String
-  voters Voter[]
-  tcs    Tc[]
+  id             Int                    @id @default(autoincrement())
+  constituencyNo Int                    @unique
+  name           String
+  voters         Voter[]
+  tcs            Tc[]
   // One-to-many with Municipality
-  municipalities Municipality[] 
+  municipalities Municipality[]
   // Many-to-many with District
-  districts DistrictConstituency[]
+  districts      DistrictConstituency[]
 }
 
 // Join table for many-to-many
@@ -93,9 +108,9 @@ model DistrictConstituency {
 }
 
 model Tc {
-  id       Int      @id @default(autoincrement())
-  tc_no    Int
-  tc_name  String
+  id      Int    @id @default(autoincrement())
+  tc_no   Int
+  tc_name String
 
   constituencyId Int
   constituency   Constituency @relation(fields: [constituencyId], references: [id])
@@ -105,19 +120,19 @@ model Tc {
 }
 
 model Gpu {
-  id       Int      @id @default(autoincrement())
+  id       Int    @id @default(autoincrement())
   gpu_no   Int
   gpu_name String
 
   tcId Int
-  tc   Tc @relation(fields: [tcId], references: [id])
+  tc   Tc  @relation(fields: [tcId], references: [id])
 
   voters Voter[]
   wards  Ward[]
 }
 
 model Ward {
-  id        Int      @id @default(autoincrement())
+  id        Int    @id @default(autoincrement())
   ward_no   Int
   ward_name String
 
@@ -130,8 +145,9 @@ model Ward {
 // ---------------- Municipal Models ----------------
 
 model Municipality {
-  id   Int    @id @default(autoincrement())
-  name String
+  id             Int    @id @default(autoincrement())
+  name           String
+  municipalityNo Int    @unique
 
   districtId Int
   district   District @relation(fields: [districtId], references: [id])

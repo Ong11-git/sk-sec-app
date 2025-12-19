@@ -22,6 +22,7 @@ export async function getAllConstituencies() {
               select: {
                 id: true,
                 name: true,
+                code: true,
               },
             },
           },
@@ -40,6 +41,7 @@ export async function getAllConstituencies() {
       districts: c.districts.map((dc) => ({
         id: dc.district.id,
         name: dc.district.name,
+        code: dc.district.code,
       })),
     }));
   } catch (error) {

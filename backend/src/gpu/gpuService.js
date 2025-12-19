@@ -18,7 +18,7 @@ export async function getAllGpus() {
                 districts: {
                   select: {
                     district: {
-                      select: { id: true, name: true },
+                      select: { id: true, name: true, code: true},
                     },
                   },
                 },
@@ -49,6 +49,7 @@ export async function getAllGpus() {
                   districts: gpu.tc.constituency.districts.map((d) => ({
                     id: d.district.id,
                     name: d.district.name,
+                    code: d.district.code,
                   })),
                 }
               : null,
