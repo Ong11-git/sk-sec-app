@@ -149,11 +149,11 @@ model Municipality {
   name           String
   municipalityNo Int    @unique
 
-  districtId Int
-  district   District @relation(fields: [districtId], references: [id])
+  districtId Int?
+  district   District? @relation(fields: [districtId], references: [id])
 
-  constituencyId Int
-  constituency   Constituency @relation(fields: [constituencyId], references: [id])
+  constituencyId Int?
+  constituency   Constituency? @relation(fields: [constituencyId], references: [id])
 
   wards  MunicipalWard[]
   voters Voter[]

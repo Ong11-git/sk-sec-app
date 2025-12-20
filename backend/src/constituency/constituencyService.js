@@ -7,7 +7,6 @@ import prisma from "../../prisma/prisma.js";
  * @param {Object} data - { name, constituencyNo, districtIds }
  */
 
-
 export async function getAllConstituencies() {
   try {
     const constituencies = await prisma.constituency.findMany({
@@ -133,7 +132,6 @@ export async function updateConstituency(id, data) {
   }
 }
 
-
 export async function deleteConstituency(id) {
   try {
     // First remove all district links (from join table)
@@ -169,7 +167,7 @@ export async function getConstituenciesByDistrictId(districtId) {
     }
 
     // Flatten and return
-    return district.constituencies.map(dc => ({
+    return district.constituencies.map((dc) => ({
       id: dc.constituency.id,
       constituencyNo: dc.constituency.constituencyNo,
       name: dc.constituency.name,
