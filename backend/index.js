@@ -13,6 +13,7 @@ import { seedDistricts } from "./src/district/seedDistricts.js";
 import gpuRouter from "./src/gpu/gpuRoute.js";
 import wardRouter from "./src/ward/wardRoute.js";
 import municipalityRouter from "./src/municipality/municipalityRoute.js";
+import municipalWardRouter from "./src/municipalWard/municipalWardRoute.js";
 
 const app = express();
 const PORT = 8080;
@@ -41,6 +42,7 @@ app.use("/districts", districtRouter);
 app.use("/tcs", tcRouter);
 app.use("/gpus", gpuRouter);
 app.use("/wards", wardRouter);
+app.use("/municipal-wards", municipalWardRouter);
 
 app.listen(PORT, () =>
   console.log(`Server  running on port: http://localhost:${PORT}`)
