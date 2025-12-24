@@ -1,7 +1,3 @@
-// ============================================
-// FILE: Sidebar.tsx
-// ============================================
-
 import { useState, useEffect } from "react";
 import {
   BarChart3,
@@ -18,6 +14,7 @@ import {
   LogOut,
   User,
   Shield,
+  Building2,
 } from "lucide-react";
 
 type TabKey =
@@ -29,7 +26,8 @@ type TabKey =
   | "territorialConstituency"
   | "district"
   | "gpu"
-  | "ward";
+  | "ward"
+  | "municipality";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -77,8 +75,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: Layers,
     },
     { key: "gpu" as TabKey, label: "GPU", icon: Home },
+    { key: "municipality" as TabKey, label: "Municipality", icon: Building2 },
     { key: "ward" as TabKey, label: "Ward", icon: Home },
-    { key: "voters" as TabKey, label: "Voters List", icon: Users },
+    // { key: "voters" as TabKey, label: "Voters List", icon: Users },
     { key: "votersFilters" as TabKey, label: "Voters Filters", icon: Filter },
     { key: "addVoters" as TabKey, label: "Add Voters", icon: UserPlus },
   ];
@@ -88,6 +87,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     district: "text-green-500",
     constituency: "text-purple-500",
     territorialConstituency: "text-amber-500",
+    municipality: "text-cyan-500",
     voters: "text-teal-500",
     votersFilters: "text-pink-500",
     addVoters: "text-red-500",

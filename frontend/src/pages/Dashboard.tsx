@@ -266,10 +266,10 @@ const Dashboard: React.FC<DashboardProps> = ({ sidebarCollapsed = false }) => {
             />
             {isRefreshing ? "Refreshing..." : "Refresh Data"}
           </button>
-          <button className="btn btn-sm md:btn-md bg-[#061E47] hover:bg-[#0A2B6B] text-white border-0 transition-all duration-200 hover:scale-105 active:scale-95">
+          {/* <button className="btn btn-sm md:btn-md bg-[#061E47] hover:bg-[#0A2B6B] text-white border-0 transition-all duration-200 hover:scale-105 active:scale-95">
             <Download className="w-4 h-4 mr-2" />
             Export Report
-          </button>
+          </button> */}
         </div>
       </div>
 
