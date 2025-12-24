@@ -1,36 +1,43 @@
 import express from "express";
-import { authenticateToken, 
-          authorizeAdminOrUser 
-        } from "../middlewares/authMiddleware.js";
-import { getAllVoters, 
-        getVotersCount, 
-        getAverageVoterAge,
-        getDistrictWiseVoterCount,
-        getAgeGroupDistribution,
-        getGenderDistribution,
-        getConstituencyWiseVoterCount,
-        getVoterLastNames,
-        getVotersByConstituency,
-        getVotersByDistrict,
-        getVotersByTc,
-        getVotersByGpu 
-    } from "./voterServices.js";
+import {
+  authenticateToken,
+  authorizeAdminOrUser,
+} from "../middlewares/authMiddleware.js";
+import {
+  getAllVoters,
+  getVotersCount,
+  getAverageVoterAge,
+  getDistrictWiseVoterCount,
+  getAgeGroupDistribution,
+  getGenderDistribution,
+  getConstituencyWiseVoterCount,
+  getVoterLastNames,
+  getVotersByConstituency,
+  getVotersByDistrict,
+  getVotersByTc,
+  getVotersByGpu,
+  getVoterById,
+  createVoter,
+  updateVoter,
+  deleteVoter,
+} from "./voterServices.js";
 
 const voterRouter = express.Router();
 
 voterRouter.get(
-    "/",
-    authenticateToken,
-    authorizeAdminOrUser,
-    async(req, res) =>{
-        try {
-            const voters = await getAllVoters();
-            res.json(voters);
-        } catch (error) {
-            console.error("Error fetching Voters", error.message);
-            res.status(500).json({ error: "Failed to fetch voters." });
-        }
-})
+  "/",
+  authenticateToken,
+  authorizeAdminOrUser,
+  async (req, res) => {
+    try {
+      const voters = await getAllVoters();
+      res.json(voters);
+    } catch (error) {
+      console.error("Error fetching Voters", error.message);
+      res.status(500).json({ error: "Failed to fetch voters." });
+    }
+  }
+);
 
 voterRouter.get(
   "/count",
@@ -65,34 +72,39 @@ voterRouter.get(
 
 // ✅ New: District-wise voter count
 voterRouter.get(
-    "/district-wise-count", 
-    authenticateToken, 
-    authorizeAdminOrUser, 
-    async (req, res) => {
-  try {
-    const districtCounts = await getDistrictWiseVoterCount();
-    res.json(districtCounts);
-  } catch (error) {
-    console.error("Error fetching district-wise voter count", error.message);
-    res.status(500).json({ error: "Failed to fetch district-wise voter count." });
+  "/district-wise-count",
+  authenticateToken,
+  authorizeAdminOrUser,
+  async (req, res) => {
+    try {
+      const districtCounts = await getDistrictWiseVoterCount();
+      res.json(districtCounts);
+    } catch (error) {
+      console.error("Error fetching district-wise voter count", error.message);
+      res
+        .status(500)
+        .json({ error: "Failed to fetch district-wise voter count." });
+    }
   }
-});
-
+);
 
 // ✅ Get Age Group Distribution
 voterRouter.get(
-    "/age-group", 
-    authenticateToken, 
-    authorizeAdminOrUser, 
-    async (req, res) => {
-  try {
-    const data = await getAgeGroupDistribution();
-    res.json(data);
-  } catch (error) {
-    console.error("Error fetching age group distribution", error.message);
-    res.status(500).json({ error: "Failed to fetch age group distribution." });
+  "/age-group",
+  authenticateToken,
+  authorizeAdminOrUser,
+  async (req, res) => {
+    try {
+      const data = await getAgeGroupDistribution();
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching age group distribution", error.message);
+      res
+        .status(500)
+        .json({ error: "Failed to fetch age group distribution." });
+    }
   }
-});
+);
 
 // Gender distribution route
 voterRouter.get(
@@ -120,7 +132,9 @@ voterRouter.get(
       res.json(data);
     } catch (error) {
       console.error("Error fetching constituency voter count", error.message);
-      res.status(500).json({ error: "Failed to fetch constituency voter count." });
+      res
+        .status(500)
+        .json({ error: "Failed to fetch constituency voter count." });
     }
   }
 );
@@ -139,7 +153,6 @@ voterRouter.get(
     }
   }
 );
-
 
 // ✅ GET /voters/by-constituency/:name
 voterRouter.get(
@@ -209,5 +222,87 @@ voterRouter.get(
   }
 );
 
+// New added routes are from the following line
+
+/**
+ * GET /voters/:id
+ */
+voterRouter.get(
+  "/:id",
+  authenticateToken,
+  authorizeAdminOrUser,
+  async (req, res) => {
+    try {
+      const voter = await getVoterById(req.params.id);
+      res.json({ voter });
+    } catch (error) {
+      res.status(404).json({ error: error.message });
+    }
+  }
+);
+
+/**
+ * POST /voters/create
+ */
+voterRouter.post(
+  "/create",
+  authenticateToken,
+  authorizeAdminOrUser,
+  async (req, res) => {
+    try {
+      const voter = await createVoter(req.body);
+      res.status(201).json({
+        message: "Voter created successfully",
+        voter,
+      });
+    } catch (error) {
+      console.error("Error creating voter:", error.message);
+      res.status(400).json({ error: error.message });
+    }
+  }
+);
+
+/**
+ * PUT /voters/edit/:id
+ */
+voterRouter.put(
+  "/edit/:id",
+  authenticateToken,
+  authorizeAdminOrUser,
+  async (req, res) => {
+    try {
+      const voter = await updateVoter(req.params.id, req.body);
+      res.json({
+        message: "Voter updated successfully",
+        voter,
+      });
+    } catch (error) {
+      console.error("Error updating voter:", error.message);
+      res.status(400).json({ error: error.message });
+    }
+  }
+);
+
+/**
+ * DELETE /voters/delete/:id
+ * (soft delete)
+ */
+voterRouter.delete(
+  "/delete/:id",
+  authenticateToken,
+  authorizeAdminOrUser,
+  async (req, res) => {
+    try {
+      const voter = await deleteVoter(req.params.id);
+      res.json({
+        message: "Voter deleted successfully",
+        voter,
+      });
+    } catch (error) {
+      console.error("Error deleting voter:", error.message);
+      res.status(400).json({ error: error.message });
+    }
+  }
+);
 
 export default voterRouter;

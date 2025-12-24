@@ -7,6 +7,7 @@ export async function getAllVoters() {
         select: {
           id: true,
           name: true,
+          code: true,
         },
       },
       constituency: {
@@ -17,7 +18,7 @@ export async function getAllVoters() {
           districts: {
             include: {
               district: {
-                select: { id: true, name: true },
+                select: { id: true, name: true, code: true },
               },
             },
           },
@@ -125,6 +126,7 @@ export async function getAllVoters() {
                 select: {
                   id: true,
                   name: true,
+                  code: true,
                 },
               },
             },
@@ -135,10 +137,9 @@ export async function getAllVoters() {
   });
 }
 
-
-export const getVotersCount = async () =>{
-    return await prisma.voter.count();
-}
+export const getVotersCount = async () => {
+  return await prisma.voter.count();
+};
 
 // ✅ New: Calculate average voter age
 export const getAverageVoterAge = async () => {
@@ -176,7 +177,6 @@ export const getDistrictWiseVoterCount = async () => {
   return merged.sort((a, b) => b.voters - a.voters);
 };
 
-
 export const getAgeGroupDistribution = async () => {
   // Fetch all voters' ages
   const voters = await prisma.voter.findMany({
@@ -210,8 +210,6 @@ export const getAgeGroupDistribution = async () => {
   return counts;
 };
 
-
-
 export const getGenderDistribution = async () => {
   const genders = [
     { db: "M", label: "Male" },
@@ -235,7 +233,6 @@ export const getGenderDistribution = async () => {
   return results;
 };
 
-
 export const getConstituencyWiseVoterCount = async () => {
   // Get all constituencies (ids + names)
   const constituencies = await prisma.constituency.findMany({
@@ -257,10 +254,9 @@ export const getConstituencyWiseVoterCount = async () => {
   return constituencies.map((c) => ({
     constituencyId: c.id,
     constituency: c.name,
-    voters: counts[c.id] ?? 0,   // always return 0 if no voters
+    voters: counts[c.id] ?? 0, // always return 0 if no voters
   }));
 };
-
 
 export const getVoterLastNames = async () => {
   const voters = await prisma.voter.findMany({
@@ -320,14 +316,13 @@ export const getVoterLastNames = async () => {
 //   }
 // }
 
-
 export async function getVotersByConstituency(constituencyName) {
   try {
     // ✅ Fetch all voters with constituency relation
     const voters = await prisma.voter.findMany({
       where: {
         constituency: {
-          name: constituencyName,   // filter by name
+          name: constituencyName, // filter by name
         },
       },
       select: {
@@ -339,7 +334,9 @@ export async function getVotersByConstituency(constituencyName) {
     });
 
     if (!voters || voters.length === 0) {
-      return { message: `No voters found in constituency: ${constituencyName}` };
+      return {
+        message: `No voters found in constituency: ${constituencyName}`,
+      };
     }
 
     // ✅ Total voters
@@ -439,7 +436,6 @@ export async function getVotersByDistrict(districtName) {
   }
 }
 
-
 export async function getVotersByTc(tcName) {
   try {
     // ✅ Fetch voters filtered by tcName (string field)
@@ -496,7 +492,6 @@ export async function getVotersByTc(tcName) {
     throw new Error("Failed to fetch TC-wise voters");
   }
 }
-
 
 export async function getVotersByGpu(gpuName) {
   try {
@@ -555,11 +550,371 @@ export async function getVotersByGpu(gpuName) {
   }
 }
 
+/**
+ * Get voter by ID
+ */
+export async function getVoterById(id) {
+  const voter = await prisma.voter.findUnique({
+    where: { id: Number(id) },
+    include: {
+      district: true,
+      constituency: true,
+      municipality: true,
+      municipalWard: true,
+      tc: true,
+      gpu: true,
+      ward: true,
+    },
+  });
 
+  if (!voter) {
+    throw new Error("Voter not found");
+  }
 
+  return voter;
+}
 
+/**
+ * Create voter
+ */
 
+export async function createVoter(data) {
+  try {
+    const {
+      epicNo,
+      stateEpicNo,
+      name,
+      relationType,
+      relationName,
+      age,
+      gender,
+      casteCategory,
+      country,
+      state,
+      districtId,
 
+      constituencyId,
+      tcId,
+      gpuId,
+      wardId,
+      municipalityId,
+      municipalWardId,
+      photo,
+    } = data;
 
+    // -----------------------------
+    // Required fields validation
+    // -----------------------------
+    if (
+      !epicNo ||
+      !name ||
+      !districtId ||
+      !relationType ||
+      !relationName ||
+      !age ||
+      !gender ||
+      !casteCategory ||
+      !country ||
+      !state ||
+      !districtId
+    ) {
+      throw new Error("All the required fields must be provided");
+    }
 
+    // -----------------------------
+    // EPIC / State EPIC uniqueness
+    // -----------------------------
+    const existingVoter = await prisma.voter.findFirst({
+      where: {
+        OR: [{ epicNo }, ...(stateEpicNo ? [{ stateEpicNo }] : [])],
+      },
+    });
 
+    if (existingVoter) {
+      throw new Error(
+        "Voter already exists with same EPIC or State EPIC number"
+      );
+    }
+
+    // -----------------------------
+    // Foreign key existence checks
+    // -----------------------------
+    const district = await prisma.district.findUnique({
+      where: { id: Number(districtId) },
+    });
+
+    if (!district) {
+      throw new Error("Invalid districtId");
+    }
+
+    if (constituencyId) {
+      const exists = await prisma.constituency.findUnique({
+        where: { id: Number(constituencyId) },
+      });
+      if (!exists) throw new Error("Invalid constituencyId");
+    }
+
+    if (tcId) {
+      const exists = await prisma.tc.findUnique({
+        where: { id: Number(tcId) },
+      });
+      if (!exists) throw new Error("Invalid tcId");
+    }
+
+    if (gpuId) {
+      const exists = await prisma.gpu.findUnique({
+        where: { id: Number(gpuId) },
+      });
+      if (!exists) throw new Error("Invalid gpuId");
+    }
+
+    if (wardId) {
+      const exists = await prisma.ward.findUnique({
+        where: { id: Number(wardId) },
+      });
+      if (!exists) throw new Error("Invalid wardId");
+    }
+
+    if (municipalityId) {
+      const exists = await prisma.municipality.findUnique({
+        where: { id: Number(municipalityId) },
+      });
+      if (!exists) throw new Error("Invalid municipalityId");
+    }
+
+    if (municipalWardId) {
+      const exists = await prisma.municipalWard.findUnique({
+        where: { id: Number(municipalWardId) },
+      });
+      if (!exists) throw new Error("Invalid municipalWardId");
+    }
+
+    // -----------------------------
+    // Create voter
+    // -----------------------------
+    const voter = await prisma.voter.create({
+      data: {
+        epicNo,
+        stateEpicNo,
+        photo,
+        name,
+        relationType,
+        relationName,
+        age,
+        gender,
+        casteCategory,
+        country,
+        state,
+
+        district: {
+          connect: { id: Number(districtId) },
+        },
+
+        ...(constituencyId && {
+          constituency: { connect: { id: Number(constituencyId) } },
+        }),
+
+        ...(tcId && {
+          tc: { connect: { id: Number(tcId) } },
+        }),
+
+        ...(gpuId && {
+          gpu: { connect: { id: Number(gpuId) } },
+        }),
+
+        ...(wardId && {
+          ward: { connect: { id: Number(wardId) } },
+        }),
+
+        ...(municipalityId && {
+          municipality: { connect: { id: Number(municipalityId) } },
+        }),
+
+        ...(municipalWardId && {
+          municipalWard: { connect: { id: Number(municipalWardId) } },
+        }),
+      },
+    });
+
+    return voter;
+  } catch (error) {
+    console.error("Error creating voter:", error.message);
+    throw new Error(error.message || "Failed to create voter");
+  }
+}
+
+/**
+ * Update voter by ID
+ */
+export async function updateVoter(id, data) {
+  try {
+    const voterId = Number(id);
+
+    // Check voter exists
+    const voter = await prisma.voter.findUnique({
+      where: { id: voterId },
+    });
+
+    if (!voter) {
+      throw new Error("Voter not found");
+    }
+
+    // Prevent updating deleted voter
+    // if (voter.status === "deleted") {
+    //   throw new Error("Cannot update a deleted voter");
+    // }
+
+    // Validate required fields if provided
+    if ("epicNo" in data && !data.epicNo) {
+      throw new Error("epicNo cannot be empty");
+    }
+
+    if ("name" in data && !data.name) {
+      throw new Error("name cannot be empty");
+    }
+
+    if ("districtId" in data && !data.districtId) {
+      throw new Error("districtId cannot be empty");
+    }
+
+    // Uniqueness checks (exclude current voter)
+    if (data.epicNo || data.stateEpicNo) {
+      const exists = await prisma.voter.findFirst({
+        where: {
+          id: { not: voterId },
+          OR: [
+            ...(data.epicNo ? [{ epicNo: data.epicNo }] : []),
+            ...(data.stateEpicNo ? [{ stateEpicNo: data.stateEpicNo }] : []),
+          ],
+        },
+      });
+
+      if (exists) {
+        throw new Error(
+          "Another voter already exists with the same EPIC or State EPIC number"
+        );
+      }
+    }
+
+    //  Foreign key existence checks
+    await validateForeignKeys(data);
+
+    // 5Perform update
+    return await prisma.voter.update({
+      where: { id: voterId },
+      data: {
+        epicNo: data.epicNo,
+        stateEpicNo: data.stateEpicNo,
+        name: data.name,
+
+        ...(data.districtId && {
+          district: { connect: { id: Number(data.districtId) } },
+        }),
+
+        ...mapOptionalRelations(data),
+      },
+    });
+  } catch (error) {
+    throw new Error(error.message || "Failed to update voter");
+  }
+}
+
+async function validateForeignKeys(data) {
+  const checks = [
+    data.districtId &&
+      prisma.district.findUnique({ where: { id: Number(data.districtId) } }),
+
+    data.constituencyId &&
+      prisma.constituency.findUnique({
+        where: { id: Number(data.constituencyId) },
+      }),
+
+    data.tcId && prisma.tc.findUnique({ where: { id: Number(data.tcId) } }),
+
+    data.gpuId && prisma.gpu.findUnique({ where: { id: Number(data.gpuId) } }),
+
+    data.wardId &&
+      prisma.ward.findUnique({ where: { id: Number(data.wardId) } }),
+
+    data.municipalityId &&
+      prisma.municipality.findUnique({
+        where: { id: Number(data.municipalityId) },
+      }),
+
+    data.municipalWardId &&
+      prisma.municipalWard.findUnique({
+        where: { id: Number(data.municipalWardId) },
+      }),
+  ].filter(Boolean);
+
+  const results = await Promise.all(checks);
+
+  if (results.includes(null)) {
+    throw new Error("One or more related entities do not exist");
+  }
+}
+
+/**
+ * Soft delete voter
+ */
+export async function deleteVoter(id) {
+  const voter = await prisma.voter.findUnique({
+    where: { id: Number(id) },
+  });
+
+  if (!voter) {
+    throw new Error("Voter not found");
+  }
+
+  if (voter.status === "deleted") {
+    throw new Error("Voter already deleted");
+  }
+
+  return prisma.voter.update({
+    where: { id: Number(id) },
+    data: {
+      status: "deleted",
+    },
+  });
+}
+
+/**
+ * Helper to safely connect optional relations
+ */
+function mapOptionalRelations(data) {
+  return {
+    age: data.age,
+    gender: data.gender,
+    photo: data.photo,
+    casteCategory: data.casteCategory,
+    country: data.country,
+    state: data.state,
+    relationType: data.relationType,
+    relationName: data.relationName,
+    status: data.status,
+
+    ...(data.constituencyId && {
+      constituency: { connect: { id: Number(data.constituencyId) } },
+    }),
+
+    ...(data.tcId && {
+      tc: { connect: { id: Number(data.tcId) } },
+    }),
+
+    ...(data.gpuId && {
+      gpu: { connect: { id: Number(data.gpuId) } },
+    }),
+
+    ...(data.wardId && {
+      ward: { connect: { id: Number(data.wardId) } },
+    }),
+
+    ...(data.municipalityId && {
+      municipality: { connect: { id: Number(data.municipalityId) } },
+    }),
+
+    ...(data.municipalWardId && {
+      municipalWard: { connect: { id: Number(data.municipalWardId) } },
+    }),
+  };
+}
