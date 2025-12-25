@@ -3,6 +3,7 @@ import {
   authenticateToken,
   authorizeAdminOrUser,
 } from "../middlewares/authMiddleware.js";
+import uploadVoterPhoto from "../middlewares/uploadVoterPhoto.js";
 import {
   getAllVoters,
   getVotersCount,
@@ -20,7 +21,11 @@ import {
   createVoter,
   updateVoter,
   deleteVoter,
+  permanentlyDeleteVoter,
 } from "./voterServices.js";
+import uploadTempPhoto from "../middlewares/uploadTempPhoto.js";
+import cloudinary from "../config/cloudinary.js";
+import prisma from "../../prisma/prisma.js";
 
 const voterRouter = express.Router();
 
@@ -244,44 +249,178 @@ voterRouter.get(
 /**
  * POST /voters/create
  */
+
 voterRouter.post(
   "/create",
   authenticateToken,
   authorizeAdminOrUser,
+  uploadTempPhoto.single("photo"),
   async (req, res) => {
+    let uploadedImage = null;
+    let updatedVoter = null;
+
     try {
-      const voter = await createVoter(req.body);
+      // STEP 1: Validate & create voter WITHOUT photo
+      const voter = await createVoter({
+        ...req.body,
+        photo: null,
+        photoPublicId: null,
+      });
+
+      // STEP 2: Upload photo ONLY if voter is created
+      if (req.file) {
+        const epicNoSafe = req.body.epicNo.replace(/[^a-zA-Z0-9_-]/g, "");
+
+        uploadedImage = await cloudinary.uploader.upload(
+          `data:${req.file.mimetype};base64,${req.file.buffer.toString(
+            "base64"
+          )}`,
+          {
+            folder: "voters",
+            public_id: `voter_${epicNoSafe}_${Date.now()}`,
+          }
+        );
+
+        // STEP 3: Update voter with photo info
+        updatedVoter = await prisma.voter.update({
+          where: { id: voter.id },
+          data: {
+            photo: uploadedImage.secure_url,
+            photoPublicId: uploadedImage.public_id,
+          },
+        });
+      }
+
       res.status(201).json({
         message: "Voter created successfully",
-        voter,
+        voter: updatedVoter,
       });
     } catch (error) {
+      // SAFETY: cleanup if upload happened but DB failed later
+      if (uploadedImage?.public_id) {
+        await cloudinary.uploader.destroy(uploadedImage.public_id);
+      }
+
       console.error("Error creating voter:", error.message);
       res.status(400).json({ error: error.message });
     }
   }
 );
 
+// voterRouter.post(
+//   "/create",
+//   authenticateToken,
+//   authorizeAdminOrUser,
+//   uploadVoterPhoto.single("photo"),
+//   async (req, res) => {
+//     try {
+//       const photo = req.file?.path || null; // URL
+//       const photoPublicId = req.file?.filename || null; // Cloudinary public_id
+//       const voter = await createVoter({
+//         ...req.body,
+//         photo,
+//         photoPublicId,
+//       });
+
+//       res.status(201).json({
+//         message: "Voter created successfully",
+//         voter,
+//       });
+//     } catch (error) {
+//       console.error("Error creating voter:", error.message);
+//       res.status(400).json({ error: error.message });
+//     }
+//   }
+// );
+
 /**
  * PUT /voters/edit/:id
  */
+
 voterRouter.put(
   "/edit/:id",
   authenticateToken,
   authorizeAdminOrUser,
+  uploadTempPhoto.single("photo"),
   async (req, res) => {
+    let uploadedImage = null;
+
     try {
-      const voter = await updateVoter(req.params.id, req.body);
+      // STEP 1: Update voter WITHOUT photo
+      const voter = await updateVoter(req.params.id, {
+        ...req.body,
+        photo: undefined,
+        photoPublicId: undefined,
+      });
+
+      // STEP 2: Upload photo ONLY if provided
+      if (req.file) {
+        const epicNoSafe = voter.epicNo.replace(/[^a-zA-Z0-9_-]/g, "");
+
+        uploadedImage = await cloudinary.uploader.upload(
+          `data:${req.file.mimetype};base64,${req.file.buffer.toString(
+            "base64"
+          )}`,
+          {
+            folder: "voters",
+            public_id: `voter_${epicNoSafe}_${Date.now()}`,
+          }
+        );
+
+        // STEP 3: Delete old photo if exists
+        if (voter.photoPublicId) {
+          await cloudinary.uploader.destroy(voter.photoPublicId);
+        }
+
+        // STEP 4: Update voter with new photo
+        const updatedVoter = await prisma.voter.update({
+          where: { id: voter.id },
+          data: {
+            photo: uploadedImage.secure_url,
+            photoPublicId: uploadedImage.public_id,
+          },
+        });
+
+        return res.json({
+          message: "Voter updated successfully",
+          voter: updatedVoter,
+        });
+      }
+
+      // No photo update
       res.json({
         message: "Voter updated successfully",
         voter,
       });
     } catch (error) {
+      // Cleanup if upload succeeded but DB failed later
+      if (uploadedImage?.public_id) {
+        await cloudinary.uploader.destroy(uploadedImage.public_id);
+      }
+
       console.error("Error updating voter:", error.message);
       res.status(400).json({ error: error.message });
     }
   }
 );
+
+// voterRouter.put(
+//   "/edit/:id",
+//   authenticateToken,
+//   authorizeAdminOrUser,
+//   async (req, res) => {
+//     try {
+//       const voter = await updateVoter(req.params.id, req.body);
+//       res.json({
+//         message: "Voter updated successfully",
+//         voter,
+//       });
+//     } catch (error) {
+//       console.error("Error updating voter:", error.message);
+//       res.status(400).json({ error: error.message });
+//     }
+//   }
+// );
 
 /**
  * DELETE /voters/delete/:id
@@ -300,6 +439,29 @@ voterRouter.delete(
       });
     } catch (error) {
       console.error("Error deleting voter:", error.message);
+      res.status(400).json({ error: error.message });
+    }
+  }
+);
+
+/**
+ * DELETE /voters/delete/:id
+ * (hard delete)
+ */
+voterRouter.delete(
+  "/permanent-delete/:id",
+  authenticateToken,
+  authorizeAdminOrUser,
+  async (req, res) => {
+    try {
+      const voter = await permanentlyDeleteVoter(req.params.id);
+
+      res.json({
+        message: "Voter permanently deleted successfully",
+        voter,
+      });
+    } catch (error) {
+      console.error("Error permanently deleting voter:", error.message);
       res.status(400).json({ error: error.message });
     }
   }

@@ -1,4 +1,5 @@
 import prisma from "../../prisma/prisma.js";
+import cloudinary from "../config/cloudinary.js";
 
 export async function getAllVoters() {
   return await prisma.voter.findMany({
@@ -577,7 +578,6 @@ export async function getVoterById(id) {
 /**
  * Create voter
  */
-
 export async function createVoter(data) {
   try {
     const {
@@ -600,6 +600,7 @@ export async function createVoter(data) {
       municipalityId,
       municipalWardId,
       photo,
+      photoPublicId,
     } = data;
 
     // -----------------------------
@@ -611,14 +612,32 @@ export async function createVoter(data) {
       !districtId ||
       !relationType ||
       !relationName ||
-      !age ||
+      age === undefined ||
       !gender ||
       !casteCategory ||
       !country ||
-      !state ||
-      !districtId
+      !state
     ) {
       throw new Error("All the required fields must be provided");
+    }
+
+    // -----------------------------
+    // Type normalization (IMPORTANT)
+    // -----------------------------
+    const parsedAge = age !== null ? Number(age) : null;
+    const parsedDistrictId = Number(districtId);
+    const parsedConstituencyId = constituencyId ? Number(constituencyId) : null;
+    const parsedTcId = tcId ? Number(tcId) : null;
+    const parsedGpuId = gpuId ? Number(gpuId) : null;
+    const parsedWardId = wardId ? Number(wardId) : null;
+    const parsedMunicipalityId = municipalityId ? Number(municipalityId) : null;
+    const parsedMunicipalWardId = municipalWardId
+      ? Number(municipalWardId)
+      : null;
+
+    // Validate number conversions
+    if (parsedAge !== null && Number.isNaN(parsedAge)) {
+      throw new Error("Age must be a valid number");
     }
 
     // -----------------------------
@@ -640,51 +659,51 @@ export async function createVoter(data) {
     // Foreign key existence checks
     // -----------------------------
     const district = await prisma.district.findUnique({
-      where: { id: Number(districtId) },
+      where: { id: parsedDistrictId },
     });
 
     if (!district) {
       throw new Error("Invalid districtId");
     }
 
-    if (constituencyId) {
+    if (parsedConstituencyId) {
       const exists = await prisma.constituency.findUnique({
-        where: { id: Number(constituencyId) },
+        where: { id: parsedConstituencyId },
       });
       if (!exists) throw new Error("Invalid constituencyId");
     }
 
-    if (tcId) {
+    if (parsedTcId) {
       const exists = await prisma.tc.findUnique({
-        where: { id: Number(tcId) },
+        where: { id: parsedTcId },
       });
       if (!exists) throw new Error("Invalid tcId");
     }
 
-    if (gpuId) {
+    if (parsedGpuId) {
       const exists = await prisma.gpu.findUnique({
-        where: { id: Number(gpuId) },
+        where: { id: parsedGpuId },
       });
       if (!exists) throw new Error("Invalid gpuId");
     }
 
-    if (wardId) {
+    if (parsedWardId) {
       const exists = await prisma.ward.findUnique({
-        where: { id: Number(wardId) },
+        where: { id: parsedWardId },
       });
       if (!exists) throw new Error("Invalid wardId");
     }
 
-    if (municipalityId) {
+    if (parsedMunicipalityId) {
       const exists = await prisma.municipality.findUnique({
-        where: { id: Number(municipalityId) },
+        where: { id: parsedMunicipalityId },
       });
       if (!exists) throw new Error("Invalid municipalityId");
     }
 
-    if (municipalWardId) {
+    if (parsedMunicipalWardId) {
       const exists = await prisma.municipalWard.findUnique({
-        where: { id: Number(municipalWardId) },
+        where: { id: parsedMunicipalWardId },
       });
       if (!exists) throw new Error("Invalid municipalWardId");
     }
@@ -697,41 +716,42 @@ export async function createVoter(data) {
         epicNo,
         stateEpicNo,
         photo,
+        photoPublicId,
         name,
         relationType,
         relationName,
-        age,
+        age: parsedAge,
         gender,
         casteCategory,
         country,
         state,
 
         district: {
-          connect: { id: Number(districtId) },
+          connect: { id: parsedDistrictId },
         },
 
-        ...(constituencyId && {
-          constituency: { connect: { id: Number(constituencyId) } },
+        ...(parsedConstituencyId && {
+          constituency: { connect: { id: parsedConstituencyId } },
         }),
 
-        ...(tcId && {
-          tc: { connect: { id: Number(tcId) } },
+        ...(parsedTcId && {
+          tc: { connect: { id: parsedTcId } },
         }),
 
-        ...(gpuId && {
-          gpu: { connect: { id: Number(gpuId) } },
+        ...(parsedGpuId && {
+          gpu: { connect: { id: parsedGpuId } },
         }),
 
-        ...(wardId && {
-          ward: { connect: { id: Number(wardId) } },
+        ...(parsedWardId && {
+          ward: { connect: { id: parsedWardId } },
         }),
 
-        ...(municipalityId && {
-          municipality: { connect: { id: Number(municipalityId) } },
+        ...(parsedMunicipalityId && {
+          municipality: { connect: { id: parsedMunicipalityId } },
         }),
 
-        ...(municipalWardId && {
-          municipalWard: { connect: { id: Number(municipalWardId) } },
+        ...(parsedMunicipalWardId && {
+          municipalWard: { connect: { id: parsedMunicipalWardId } },
         }),
       },
     });
@@ -743,14 +763,179 @@ export async function createVoter(data) {
   }
 }
 
+// export async function createVoter(data) {
+//   try {
+//     const {
+//       epicNo,
+//       stateEpicNo,
+//       name,
+//       relationType,
+//       relationName,
+//       age,
+//       gender,
+//       casteCategory,
+//       country,
+//       state,
+//       districtId,
+
+//       constituencyId,
+//       tcId,
+//       gpuId,
+//       wardId,
+//       municipalityId,
+//       municipalWardId,
+//       photo,
+//     } = data;
+
+//     // -----------------------------
+//     // Required fields validation
+//     // -----------------------------
+//     if (
+//       !epicNo ||
+//       !name ||
+//       !districtId ||
+//       !relationType ||
+//       !relationName ||
+//       !age ||
+//       !gender ||
+//       !casteCategory ||
+//       !country ||
+//       !state ||
+//       !districtId
+//     ) {
+//       throw new Error("All the required fields must be provided");
+//     }
+
+//     // -----------------------------
+//     // EPIC / State EPIC uniqueness
+//     // -----------------------------
+//     const existingVoter = await prisma.voter.findFirst({
+//       where: {
+//         OR: [{ epicNo }, ...(stateEpicNo ? [{ stateEpicNo }] : [])],
+//       },
+//     });
+
+//     if (existingVoter) {
+//       throw new Error(
+//         "Voter already exists with same EPIC or State EPIC number"
+//       );
+//     }
+
+//     // -----------------------------
+//     // Foreign key existence checks
+//     // -----------------------------
+//     const district = await prisma.district.findUnique({
+//       where: { id: Number(districtId) },
+//     });
+
+//     if (!district) {
+//       throw new Error("Invalid districtId");
+//     }
+
+//     if (constituencyId) {
+//       const exists = await prisma.constituency.findUnique({
+//         where: { id: Number(constituencyId) },
+//       });
+//       if (!exists) throw new Error("Invalid constituencyId");
+//     }
+
+//     if (tcId) {
+//       const exists = await prisma.tc.findUnique({
+//         where: { id: Number(tcId) },
+//       });
+//       if (!exists) throw new Error("Invalid tcId");
+//     }
+
+//     if (gpuId) {
+//       const exists = await prisma.gpu.findUnique({
+//         where: { id: Number(gpuId) },
+//       });
+//       if (!exists) throw new Error("Invalid gpuId");
+//     }
+
+//     if (wardId) {
+//       const exists = await prisma.ward.findUnique({
+//         where: { id: Number(wardId) },
+//       });
+//       if (!exists) throw new Error("Invalid wardId");
+//     }
+
+//     if (municipalityId) {
+//       const exists = await prisma.municipality.findUnique({
+//         where: { id: Number(municipalityId) },
+//       });
+//       if (!exists) throw new Error("Invalid municipalityId");
+//     }
+
+//     if (municipalWardId) {
+//       const exists = await prisma.municipalWard.findUnique({
+//         where: { id: Number(municipalWardId) },
+//       });
+//       if (!exists) throw new Error("Invalid municipalWardId");
+//     }
+
+//     // -----------------------------
+//     // Create voter
+//     // -----------------------------
+//     const voter = await prisma.voter.create({
+//       data: {
+//         epicNo,
+//         stateEpicNo,
+//         photo,
+//         name,
+//         relationType,
+//         relationName,
+//         age,
+//         gender,
+//         casteCategory,
+//         country,
+//         state,
+
+//         district: {
+//           connect: { id: Number(districtId) },
+//         },
+
+//         ...(constituencyId && {
+//           constituency: { connect: { id: Number(constituencyId) } },
+//         }),
+
+//         ...(tcId && {
+//           tc: { connect: { id: Number(tcId) } },
+//         }),
+
+//         ...(gpuId && {
+//           gpu: { connect: { id: Number(gpuId) } },
+//         }),
+
+//         ...(wardId && {
+//           ward: { connect: { id: Number(wardId) } },
+//         }),
+
+//         ...(municipalityId && {
+//           municipality: { connect: { id: Number(municipalityId) } },
+//         }),
+
+//         ...(municipalWardId && {
+//           municipalWard: { connect: { id: Number(municipalWardId) } },
+//         }),
+//       },
+//     });
+
+//     return voter;
+//   } catch (error) {
+//     console.error("Error creating voter:", error.message);
+//     throw new Error(error.message || "Failed to create voter");
+//   }
+// }
+
 /**
  * Update voter by ID
  */
+
 export async function updateVoter(id, data) {
   try {
     const voterId = Number(id);
 
-    // Check voter exists
     const voter = await prisma.voter.findUnique({
       where: { id: voterId },
     });
@@ -758,13 +943,9 @@ export async function updateVoter(id, data) {
     if (!voter) {
       throw new Error("Voter not found");
     }
+    console.log("Updating voter with data:", data);
 
-    // Prevent updating deleted voter
-    // if (voter.status === "deleted") {
-    //   throw new Error("Cannot update a deleted voter");
-    // }
-
-    // Validate required fields if provided
+    // Required field validations (only if present)
     if ("epicNo" in data && !data.epicNo) {
       throw new Error("epicNo cannot be empty");
     }
@@ -777,7 +958,7 @@ export async function updateVoter(id, data) {
       throw new Error("districtId cannot be empty");
     }
 
-    // Uniqueness checks (exclude current voter)
+    // Uniqueness check
     if (data.epicNo || data.stateEpicNo) {
       const exists = await prisma.voter.findFirst({
         where: {
@@ -796,10 +977,8 @@ export async function updateVoter(id, data) {
       }
     }
 
-    //  Foreign key existence checks
     await validateForeignKeys(data);
 
-    // 5Perform update
     return await prisma.voter.update({
       where: { id: voterId },
       data: {
@@ -818,6 +997,79 @@ export async function updateVoter(id, data) {
     throw new Error(error.message || "Failed to update voter");
   }
 }
+
+// export async function updateVoter(id, data) {
+//   try {
+//     const voterId = Number(id);
+
+//     // Check voter exists
+//     const voter = await prisma.voter.findUnique({
+//       where: { id: voterId },
+//     });
+
+//     if (!voter) {
+//       throw new Error("Voter not found");
+//     }
+
+//     // Prevent updating deleted voter
+//     // if (voter.status === "deleted") {
+//     //   throw new Error("Cannot update a deleted voter");
+//     // }
+
+//     // Validate required fields if provided
+//     if ("epicNo" in data && !data.epicNo) {
+//       throw new Error("epicNo cannot be empty");
+//     }
+
+//     if ("name" in data && !data.name) {
+//       throw new Error("name cannot be empty");
+//     }
+
+//     if ("districtId" in data && !data.districtId) {
+//       throw new Error("districtId cannot be empty");
+//     }
+
+//     // Uniqueness checks (exclude current voter)
+//     if (data.epicNo || data.stateEpicNo) {
+//       const exists = await prisma.voter.findFirst({
+//         where: {
+//           id: { not: voterId },
+//           OR: [
+//             ...(data.epicNo ? [{ epicNo: data.epicNo }] : []),
+//             ...(data.stateEpicNo ? [{ stateEpicNo: data.stateEpicNo }] : []),
+//           ],
+//         },
+//       });
+
+//       if (exists) {
+//         throw new Error(
+//           "Another voter already exists with the same EPIC or State EPIC number"
+//         );
+//       }
+//     }
+
+//     //  Foreign key existence checks
+//     await validateForeignKeys(data);
+
+//     // 5Perform update
+//     return await prisma.voter.update({
+//       where: { id: voterId },
+//       data: {
+//         epicNo: data.epicNo,
+//         stateEpicNo: data.stateEpicNo,
+//         name: data.name,
+
+//         ...(data.districtId && {
+//           district: { connect: { id: Number(data.districtId) } },
+//         }),
+
+//         ...mapOptionalRelations(data),
+//       },
+//     });
+//   } catch (error) {
+//     throw new Error(error.message || "Failed to update voter");
+//   }
+// }
 
 async function validateForeignKeys(data) {
   const checks = [
@@ -876,6 +1128,46 @@ export async function deleteVoter(id) {
       status: "deleted",
     },
   });
+}
+
+export async function permanentlyDeleteVoter(id) {
+  const voterId = Number(id);
+
+  try {
+    // Fetch voter
+    const voter = await prisma.voter.findUnique({
+      where: { id: voterId },
+    });
+
+    if (!voter) {
+      throw new Error("Voter not found");
+    }
+
+    // Delete image from Cloudinary (if exists)
+    if (voter.photoPublicId) {
+      try {
+        await cloudinary.uploader.destroy(voter.photoPublicId);
+      } catch (cloudErr) {
+        console.error("Cloudinary deletion failed:", cloudErr.message);
+        throw new Error("Failed to delete voter image");
+      }
+    }
+
+    // Delete voter from database
+    try {
+      await prisma.voter.delete({
+        where: { id: voterId },
+      });
+    } catch (dbErr) {
+      console.error("Database deletion failed:", dbErr.message);
+      throw new Error("Failed to delete voter record");
+    }
+
+    return voter;
+  } catch (error) {
+    console.error("Permanent delete error:", error.message);
+    throw new Error(error.message || "Permanent deletion failed");
+  }
 }
 
 /**

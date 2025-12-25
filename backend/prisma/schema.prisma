@@ -33,6 +33,7 @@ model Voter {
   epicNo        String  @unique
   stateEpicNo   String? @unique
   photo         String? // photo path / URL
+  photoPublicId String? // Cloudinary public_id
   name          String
   relationType  String?
   relationName  String?
