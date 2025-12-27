@@ -213,7 +213,7 @@ export default function AddDistrict() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.3, ease: "easeOut" },
+      transition: { duration: 0.3 },
     },
   };
 
@@ -225,7 +225,6 @@ export default function AddDistrict() {
       y: 0,
       transition: {
         duration: 0.2,
-        ease: "easeOut",
       },
     },
     exit: {

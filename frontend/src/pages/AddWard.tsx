@@ -41,7 +41,7 @@ export default function MunicipalWard() {
   const [selectedMunicipality, setSelectedMunicipality] = useState<{
     value: number;
     label: string;
-    municipalityNo: number;
+    municipalityNo?: number | undefined;
   } | null>(null);
   const [wardNo, setWardNo] = useState<number | "">("");
   const [wardName, setWardName] = useState("");
@@ -355,7 +355,7 @@ export default function MunicipalWard() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.3, ease: "easeOut" },
+      transition: { duration: 0.3 },
     },
   };
 
@@ -367,7 +367,6 @@ export default function MunicipalWard() {
       y: 0,
       transition: {
         duration: 0.2,
-        ease: "easeOut",
       },
     },
     exit: {
@@ -968,7 +967,7 @@ export default function MunicipalWard() {
                     <Select
                       options={municipalityOptions}
                       value={selectedMunicipality}
-                      onChange={setSelectedMunicipality}
+                      onChange={(val) => setSelectedMunicipality(val)}
                       styles={selectStyles}
                       placeholder="Select municipality..."
                       menuPortalTarget={document.body}

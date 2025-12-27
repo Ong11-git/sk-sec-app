@@ -103,7 +103,7 @@ export default function AddConstituency() {
       padding: "2px 6px",
       margin: "2px",
     }),
-    multiValueLabel: (base, state) => ({
+    multiValueLabel: (base, _state) => ({
       ...base,
       color: "#061E47",
       fontWeight: 500,
@@ -360,7 +360,7 @@ export default function AddConstituency() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.3, ease: "easeOut" },
+      transition: { duration: 0.3 },
     },
   };
 
@@ -372,7 +372,6 @@ export default function AddConstituency() {
       y: 0,
       transition: {
         duration: 0.2,
-        ease: "easeOut",
       },
     },
     exit: {

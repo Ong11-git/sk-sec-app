@@ -13,12 +13,16 @@ import {
   X,
   User,
   Camera,
+  CreditCard,
+  FileText,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
-import { FiPlus, FiEdit, FiTrash, FiEye } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import Select from "react-select";
 import type { StylesConfig } from "react-select";
+import VoterCardGenerator from "../components/VoterCardGenerator";
 
 export default function AddVoters() {
   const [voters, setVoters] = useState<any[]>([]);
@@ -76,8 +80,6 @@ export default function AddVoters() {
   // Image states
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [photoPublicId, setPhotoPublicId] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -93,7 +95,46 @@ export default function AddVoters() {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [cardGeneratorOpen, setCardGeneratorOpen] = useState(false);
+  const [pdfImportModalOpen, setPdfImportModalOpen] = useState(false);
   const [selectedVoter, setSelectedVoter] = useState<any>(null);
+
+  // PDF Import states
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfImportDistrict, setPdfImportDistrict] = useState<{
+    value: number;
+    label: string;
+  } | null>(null);
+  const [pdfImportConstituency, setPdfImportConstituency] = useState<{
+    value: number;
+    label: string;
+  } | null>(null);
+  const [pdfImportTc, setPdfImportTc] = useState<{
+    value: number;
+    label: string;
+  } | null>(null);
+  const [pdfImportGpu, setPdfImportGpu] = useState<{
+    value: number;
+    label: string;
+  } | null>(null);
+  const [pdfImportWard, setPdfImportWard] = useState<{
+    value: number;
+    label: string;
+  } | null>(null);
+  const [pdfImportMunicipality, setPdfImportMunicipality] = useState<{
+    value: number;
+    label: string;
+  } | null>(null);
+  const [pdfImportMunicipalWard, setPdfImportMunicipalWard] = useState<{
+    value: number;
+    label: string;
+  } | null>(null);
+  const [pdfImportAreaType, setPdfImportAreaType] = useState<"Rural" | "Urban">(
+    "Rural"
+  );
+  const [pdfImportResult, setPdfImportResult] = useState<any>(null);
+  const [isPdfUploading, setIsPdfUploading] = useState(false);
+  const pdfFileInputRef = useRef<HTMLInputElement>(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -105,9 +146,11 @@ export default function AddVoters() {
     fetchMunicipalities();
   }, []);
 
-  const fetchVoters = async () => {
-    try {
+  const fetchVoters = async (skipLoading = false) => {
+    if (!skipLoading) {
       setIsLoading(true);
+    }
+    try {
       const token = sessionStorage.getItem("token");
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/voters`, {
         headers: {
@@ -121,7 +164,9 @@ export default function AddVoters() {
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
-      setIsLoading(false);
+      if (!skipLoading) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -256,54 +301,83 @@ export default function AddVoters() {
     }
   };
 
-  // Cloudinary image upload
-  const uploadImageToCloudinary = async (
-    file: File
-  ): Promise<{ photo: string; photoPublicId: string }> => {
-    try {
-      setIsUploadingImage(true);
-      setError(null);
+  // Create voter with photo via backend API (handles Cloudinary upload)
+  const createVoterWithPhoto = async (
+    voterData: any,
+    photoFile: File | null
+  ) => {
+    const token = sessionStorage.getItem("token");
+    const formData = new FormData();
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", "ml_default");
-      formData.append("folder", "voter-photos");
-      formData.append("timestamp", (Date.now() / 1000).toString());
-
-      const cloudName =
-        import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "dgcltlzzc";
-      const apiKey =
-        import.meta.env.VITE_CLOUDINARY_API_KEY || "784533558521846";
-
-      formData.append("api_key", apiKey);
-
-      const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-
-      const response = await fetch(uploadUrl, {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error?.message || "Failed to upload image");
+    // Append all voter data fields
+    Object.entries(voterData).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== "") {
+        formData.append(key, String(value));
       }
+    });
 
-      return {
-        photo: data.secure_url,
-        photoPublicId: data.public_id,
-      };
-    } catch (error: any) {
-      console.error("Cloudinary upload error:", error);
-      const localUrl = URL.createObjectURL(file);
-      return {
-        photo: localUrl,
-        photoPublicId: `local_${Date.now()}`,
-      };
-    } finally {
-      setIsUploadingImage(false);
+    // Append photo if exists
+    if (photoFile) {
+      formData.append("photo", photoFile);
     }
+
+    const res = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL}/voters/create`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    );
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to create voter");
+    }
+
+    return data.voter;
+  };
+
+  // Update voter with photo via backend API
+  const updateVoterWithPhoto = async (
+    id: number,
+    voterData: any,
+    photoFile: File | null
+  ) => {
+    const token = sessionStorage.getItem("token");
+    const formData = new FormData();
+
+    // Append all voter data fields
+    Object.entries(voterData).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== "") {
+        formData.append(key, String(value));
+      }
+    });
+
+    // Append photo if exists
+    if (photoFile) {
+      formData.append("photo", photoFile);
+    }
+
+    const res = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL}/voters/edit/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    );
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to update voter");
+    }
+
+    return data;
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -340,8 +414,6 @@ export default function AddVoters() {
   const removeImage = () => {
     setPhotoFile(null);
     setPhotoPreview(null);
-    setPhotoUrl(null);
-    setPhotoPublicId(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -362,7 +434,8 @@ export default function AddVoters() {
       );
       if (!res.ok) throw new Error("Failed to fetch voter details");
       const data = await res.json();
-      setSelectedVoter(data);
+      // API returns { voter: {...} } so we need to extract the voter object
+      setSelectedVoter(data.voter || data);
       setViewModalOpen(true);
     } catch (err: any) {
       setError(err.message || "Failed to load voter details");
@@ -505,11 +578,9 @@ export default function AddVoters() {
       }
     }
 
-    // Set photo
+    // Set photo preview for existing voter photo
     if (voter.photo) {
-      setPhotoUrl(voter.photo);
       setPhotoPreview(voter.photo);
-      setPhotoPublicId(voter.photoPublicId || null);
     }
 
     setEditModalOpen(true);
@@ -523,14 +594,9 @@ export default function AddVoters() {
 
     try {
       setIsLoading(true);
-      const token = sessionStorage.getItem("token");
+      setIsUploadingImage(!!photoFile);
 
-      let photoData = null;
-      if (photoFile) {
-        photoData = await uploadImageToCloudinary(photoFile);
-      }
-
-      const requestBody: any = {
+      const voterData = {
         epicNo,
         stateEpicNo,
         name,
@@ -550,45 +616,36 @@ export default function AddVoters() {
         municipalWardId: selectedMunicipalWard?.value,
       };
 
-      if (photoData) {
-        requestBody.photo = photoData.photo;
-        requestBody.photoPublicId = photoData.photoPublicId;
-      } else if (photoUrl && !photoFile) {
-        requestBody.photo = photoUrl;
-        requestBody.photoPublicId = photoPublicId;
-      }
-
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/voters/${selectedVoter.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(requestBody),
-        }
+      const updatedVoter = await updateVoterWithPhoto(
+        selectedVoter.id,
+        voterData,
+        photoFile
       );
 
-      const data = await res.json();
+      // Update the voter in local state to maintain current order
+      setVoters((prevVoters) =>
+        prevVoters.map((voter) =>
+          voter.id === selectedVoter.id ? updatedVoter.voter : voter
+        )
+      );
 
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to update voter");
-      }
+      // Refetch voters to ensure consistency with server state
+      await fetchVoters();
 
       setSuccessMsg("Voter updated successfully!");
       setTimeout(() => setSuccessMsg(undefined), 3000);
       setEditModalOpen(false);
-      fetchVoters();
       resetForm();
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsLoading(false);
+      setIsUploadingImage(false);
     }
   };
 
   const handleDeleteVoter = async (id: number) => {
+    console.log("Starting delete for ID:", id, typeof id);
     try {
       setIsLoading(true);
       const token = sessionStorage.getItem("token");
@@ -601,15 +658,39 @@ export default function AddVoters() {
       );
 
       const data = await res.json();
+      console.log("Delete API response:", res.status, data);
 
       if (!res.ok) {
         throw new Error(data.error || "Failed to delete voter");
       }
 
+      // Reset to first page to avoid empty page after delete
+      setCurrentPage(1);
+
+      // Remove the deleted voter from local state immediately
+      setVoters((prevVoters) => {
+        const filtered = prevVoters.filter(
+          (voter) => Number(voter.id) !== Number(id)
+        );
+        console.log(
+          "Before delete:",
+          prevVoters.length,
+          "After delete:",
+          filtered.length,
+          "Deleted ID:",
+          id,
+          "Type:",
+          typeof id
+        );
+        return filtered;
+      });
+
+      // Revalidate by refetching in the background without loading indicator
+      fetchVoters(true);
+
       setSuccessMsg("Voter deleted successfully!");
       setTimeout(() => setSuccessMsg(undefined), 3000);
       setDeleteModalOpen(false);
-      fetchVoters();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -643,14 +724,9 @@ export default function AddVoters() {
 
     try {
       setIsLoading(true);
-      const token = sessionStorage.getItem("token");
+      setIsUploadingImage(!!photoFile);
 
-      let photoData = null;
-      if (photoFile) {
-        photoData = await uploadImageToCloudinary(photoFile);
-      }
-
-      const requestBody: any = {
+      const voterData = {
         epicNo,
         stateEpicNo,
         name,
@@ -670,40 +746,22 @@ export default function AddVoters() {
         municipalWardId: selectedMunicipalWard?.value,
       };
 
-      if (photoData) {
-        requestBody.photo = photoData.photo;
-        requestBody.photoPublicId = photoData.photoPublicId;
-      }
+      const newVoter = await createVoterWithPhoto(voterData, photoFile);
 
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/voters/create`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to create voter");
-      }
+      // Add the new voter to the beginning of the list to maintain current order
+      setVoters((prevVoters) => [newVoter, ...prevVoters]);
 
       setSuccessMsg("Voter created successfully!");
       setTimeout(() => setSuccessMsg(undefined), 3000);
       (
         document.getElementById("create_voter_modal") as HTMLDialogElement
       )?.close();
-      fetchVoters();
       resetForm();
     } catch (err: any) {
       setError(err.message || "Failed to create voter. Please try again.");
     } finally {
       setIsLoading(false);
+      setIsUploadingImage(false);
     }
   };
 
@@ -728,9 +786,122 @@ export default function AddVoters() {
     setAreaType("Rural");
     setPhotoFile(null);
     setPhotoPreview(null);
-    setPhotoUrl(null);
-    setPhotoPublicId(null);
     setError(null);
+  };
+
+  // PDF Import handlers
+  const handlePdfFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      setError("Please upload a valid PDF file");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("PDF size should be less than 10MB");
+      return;
+    }
+
+    setPdfFile(file);
+    setPdfImportResult(null);
+    setError(null);
+  };
+
+  const resetPdfImport = () => {
+    setPdfFile(null);
+    setPdfImportDistrict(null);
+    setPdfImportConstituency(null);
+    setPdfImportTc(null);
+    setPdfImportGpu(null);
+    setPdfImportWard(null);
+    setPdfImportMunicipality(null);
+    setPdfImportMunicipalWard(null);
+    setPdfImportAreaType("Rural");
+    setPdfImportResult(null);
+    if (pdfFileInputRef.current) {
+      pdfFileInputRef.current.value = "";
+    }
+  };
+
+  const handlePdfImport = async () => {
+    if (!pdfFile) {
+      setError("Please select a PDF file");
+      return;
+    }
+
+    if (!pdfImportDistrict || !pdfImportConstituency) {
+      setError("District and Constituency are required");
+      return;
+    }
+
+    // Validate based on area type
+    if (pdfImportAreaType === "Rural") {
+      if (!pdfImportTc || !pdfImportGpu || !pdfImportWard) {
+        setError("TC, GPU, and Ward are required for Rural areas");
+        return;
+      }
+    } else {
+      if (!pdfImportMunicipality || !pdfImportMunicipalWard) {
+        setError(
+          "Municipality and Municipal Ward are required for Urban areas"
+        );
+        return;
+      }
+    }
+
+    try {
+      setIsPdfUploading(true);
+      setError(null);
+
+      const formData = new FormData();
+      formData.append("electoral-roll", pdfFile);
+      formData.append("districtId", pdfImportDistrict.value.toString());
+      formData.append("constituencyId", pdfImportConstituency.value.toString());
+
+      if (pdfImportAreaType === "Rural") {
+        formData.append("tcId", pdfImportTc!.value.toString());
+        formData.append("gpuId", pdfImportGpu!.value.toString());
+        formData.append("wardId", pdfImportWard!.value.toString());
+      } else {
+        formData.append(
+          "municipalityId",
+          pdfImportMunicipality!.value.toString()
+        );
+        formData.append(
+          "municipalWardId",
+          pdfImportMunicipalWard!.value.toString()
+        );
+      }
+
+      const token = sessionStorage.getItem("token");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/pdf/upload-pdf`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to import PDF");
+      }
+
+      setPdfImportResult(data);
+      setSuccessMsg(`Successfully imported ${data.insertedCount} voters!`);
+      setTimeout(() => setSuccessMsg(undefined), 5000);
+      fetchVoters();
+    } catch (err: any) {
+      setError(err.message || "Failed to import PDF");
+    } finally {
+      setIsPdfUploading(false);
+    }
   };
 
   // Filter voters based on search
@@ -819,7 +990,7 @@ export default function AddVoters() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.3, ease: "easeOut" },
+      transition: { duration: 0.3, ease: "easeOut" as const },
     },
   };
 
@@ -889,25 +1060,41 @@ export default function AddVoters() {
             </p>
           </div>
 
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full md:w-auto"
-          >
-            <button
-              className="btn btn-sm md:btn-md bg-gradient-to-r from-[#061E47] to-[#0A2B6B] hover:from-[#0A2B6B] hover:to-[#061E47] text-white border-0 shadow-sm hover:shadow transition-all duration-200 font-medium px-4"
-              onClick={() =>
-                (
-                  document.getElementById(
-                    "create_voter_modal"
-                  ) as HTMLDialogElement
-                )?.showModal()
-              }
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-1 sm:flex-none"
             >
-              <UserPlus className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5" />
-              Add New Voter
-            </button>
-          </motion.div>
+              <button
+                className="btn btn-sm md:btn-md bg-gradient-to-r from-[#061E47] to-[#0A2B6B] hover:from-[#0A2B6B] hover:to-[#061E47] text-white border-0 shadow-sm hover:shadow transition-all duration-200 font-medium px-4 w-full"
+                onClick={() =>
+                  (
+                    document.getElementById(
+                      "create_voter_modal"
+                    ) as HTMLDialogElement
+                  )?.showModal()
+                }
+              >
+                <UserPlus className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5" />
+                Add New Voter
+              </button>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-1 sm:flex-none"
+            >
+              <button
+                className="btn btn-sm md:btn-md bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-600 text-white border-0 shadow-sm hover:shadow transition-all duration-200 font-medium px-4 w-full"
+                onClick={() => setPdfImportModalOpen(true)}
+              >
+                <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5" />
+                Import from PDF
+              </button>
+            </motion.div>
+          </div>
         </div>
       </motion.div>
 
@@ -1163,9 +1350,8 @@ export default function AddVoters() {
                     <motion.tr
                       key={voter.id}
                       variants={itemVariants}
-                      initial="hidden"
+                      initial="visible"
                       animate="visible"
-                      exit="hidden"
                       custom={index}
                       whileHover={{
                         backgroundColor: "rgba(6, 30, 71, 0.02)",
@@ -1299,6 +1485,18 @@ export default function AddVoters() {
                             }}
                           >
                             <Trash2 className="w-3 h-3" />
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="btn btn-xs btn-outline border-purple-500 text-purple-600 hover:bg-purple-50 px-2"
+                            onClick={() => {
+                              setSelectedVoter(voter);
+                              setCardGeneratorOpen(true);
+                            }}
+                            title="Generate Voter Card"
+                          >
+                            <CreditCard className="w-3 h-3" />
                           </motion.button>
                         </div>
                       </td>
@@ -3339,6 +3537,455 @@ export default function AddVoters() {
               </div>
             </motion.div>
           </div>
+        </div>
+      )}
+
+      {/* Voter Card Generator Modal */}
+      <VoterCardGenerator
+        voter={selectedVoter}
+        isOpen={cardGeneratorOpen}
+        onClose={() => setCardGeneratorOpen(false)}
+      />
+
+      {/* PDF Import Modal */}
+      {pdfImportModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => {
+              setPdfImportModalOpen(false);
+              resetPdfImport();
+            }}
+          />
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+            transition={{ type: "spring", duration: 0.5 }}
+            className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto z-10"
+          >
+            {/* Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-4 rounded-t-xl">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold">
+                      Import Voters from PDF
+                    </h3>
+                    <p className="text-emerald-100 text-sm">
+                      Electoral roll PDF import
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setPdfImportModalOpen(false);
+                    resetPdfImport();
+                  }}
+                  className="btn btn-circle btn-ghost btn-sm text-white hover:bg-white/20"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-5">
+              {/* PDF File Upload */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <Upload className="w-4 h-4" />
+                  Electoral Roll PDF *
+                </label>
+                <div
+                  className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all ${
+                    pdfFile
+                      ? "border-emerald-400 bg-emerald-50"
+                      : "border-gray-300 hover:border-emerald-400 hover:bg-emerald-50/50"
+                  }`}
+                >
+                  <input
+                    ref={pdfFileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handlePdfFileChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  {pdfFile ? (
+                    <div className="flex items-center justify-center gap-3">
+                      <FileText className="w-8 h-8 text-emerald-600" />
+                      <div className="text-left">
+                        <p className="font-medium text-gray-800">
+                          {pdfFile.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {(pdfFile.size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPdfFile(null);
+                          setPdfImportResult(null);
+                          if (pdfFileInputRef.current) {
+                            pdfFileInputRef.current.value = "";
+                          }
+                        }}
+                        className="btn btn-circle btn-xs btn-ghost text-red-500"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-600 font-medium">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        PDF files only (max 10MB)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Area Type Toggle */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Area Type *
+                </label>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPdfImportAreaType("Rural");
+                      setPdfImportMunicipality(null);
+                      setPdfImportMunicipalWard(null);
+                    }}
+                    className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+                      pdfImportAreaType === "Rural"
+                        ? "bg-emerald-600 text-white shadow-md"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    🌳 Rural (GPU/Ward)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPdfImportAreaType("Urban");
+                      setPdfImportTc(null);
+                      setPdfImportGpu(null);
+                      setPdfImportWard(null);
+                    }}
+                    className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+                      pdfImportAreaType === "Urban"
+                        ? "bg-emerald-600 text-white shadow-md"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    🏢 Urban (Municipality)
+                  </button>
+                </div>
+              </div>
+
+              {/* Location Selection */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* District */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-gray-700">
+                    District *
+                  </label>
+                  <Select
+                    value={pdfImportDistrict}
+                    onChange={(option) => {
+                      setPdfImportDistrict(option);
+                      setPdfImportConstituency(null);
+                      setPdfImportTc(null);
+                      setPdfImportGpu(null);
+                      setPdfImportWard(null);
+                    }}
+                    options={districts.map((d) => ({
+                      value: d.id,
+                      label: d.name,
+                    }))}
+                    placeholder="Select district..."
+                    styles={selectStyles}
+                    isClearable
+                  />
+                </div>
+
+                {/* Constituency */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-gray-700">
+                    Constituency *
+                  </label>
+                  <Select
+                    value={pdfImportConstituency}
+                    onChange={(option) => {
+                      setPdfImportConstituency(option);
+                      setPdfImportTc(null);
+                      setPdfImportGpu(null);
+                      setPdfImportWard(null);
+                      if (option) {
+                        fetchTcs(option.value);
+                      }
+                    }}
+                    options={constituencies.map((c) => ({
+                      value: c.id,
+                      label: `${c.constituencyNo} - ${c.name}`,
+                    }))}
+                    placeholder="Select constituency..."
+                    styles={selectStyles}
+                    isClearable
+                    isDisabled={!pdfImportDistrict}
+                  />
+                </div>
+
+                {/* Rural fields */}
+                {pdfImportAreaType === "Rural" && (
+                  <>
+                    {/* TC */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-gray-700">
+                        TC *
+                      </label>
+                      <Select
+                        value={pdfImportTc}
+                        onChange={(option) => {
+                          setPdfImportTc(option);
+                          setPdfImportGpu(null);
+                          setPdfImportWard(null);
+                          if (option) {
+                            fetchGpus(option.value);
+                          }
+                        }}
+                        options={tcs.map((tc) => ({
+                          value: tc.id,
+                          label: `${tc.tc_no} - ${tc.tc_name}`,
+                        }))}
+                        placeholder="Select TC..."
+                        styles={selectStyles}
+                        isClearable
+                        isDisabled={!pdfImportConstituency}
+                      />
+                    </div>
+
+                    {/* GPU */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-gray-700">
+                        GPU *
+                      </label>
+                      <Select
+                        value={pdfImportGpu}
+                        onChange={(option) => {
+                          setPdfImportGpu(option);
+                          setPdfImportWard(null);
+                          if (option) {
+                            fetchWards(option.value);
+                          }
+                        }}
+                        options={gpus.map((g) => ({
+                          value: g.id,
+                          label: `${g.gpu_no} - ${g.gpu_name}`,
+                        }))}
+                        placeholder="Select GPU..."
+                        styles={selectStyles}
+                        isClearable
+                        isDisabled={!pdfImportTc}
+                      />
+                    </div>
+
+                    {/* Ward */}
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="text-sm font-semibold text-gray-700">
+                        Ward *
+                      </label>
+                      <Select
+                        value={pdfImportWard}
+                        onChange={(option) => setPdfImportWard(option)}
+                        options={wards.map((w) => ({
+                          value: w.id,
+                          label: `${w.ward_no} - ${w.ward_name}`,
+                        }))}
+                        placeholder="Select Ward..."
+                        styles={selectStyles}
+                        isClearable
+                        isDisabled={!pdfImportGpu}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Urban fields */}
+                {pdfImportAreaType === "Urban" && (
+                  <>
+                    {/* Municipality */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-gray-700">
+                        Municipality *
+                      </label>
+                      <Select
+                        value={pdfImportMunicipality}
+                        onChange={async (option) => {
+                          setPdfImportMunicipality(option);
+                          setPdfImportMunicipalWard(null);
+                          if (option) {
+                            await fetchMunicipalWards(option.value);
+                          }
+                        }}
+                        options={municipalities.map((m) => ({
+                          value: m.id,
+                          label: m.name,
+                        }))}
+                        placeholder="Select municipality..."
+                        styles={selectStyles}
+                        isClearable
+                      />
+                    </div>
+
+                    {/* Municipal Ward */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-gray-700">
+                        Municipal Ward *
+                      </label>
+                      <Select
+                        value={pdfImportMunicipalWard}
+                        onChange={(option) => setPdfImportMunicipalWard(option)}
+                        options={municipalWards.map((mw) => ({
+                          value: mw.id,
+                          label: `${mw.ward_no} - ${mw.name || mw.ward_name}`,
+                        }))}
+                        placeholder="Select ward..."
+                        styles={selectStyles}
+                        isClearable
+                        isDisabled={!pdfImportMunicipality}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Import Result */}
+              {pdfImportResult && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-xl border border-emerald-200 bg-emerald-50 p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-emerald-600 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-emerald-800">
+                        Import Successful!
+                      </h4>
+                      <div className="mt-2 space-y-1 text-sm text-emerald-700">
+                        <p>
+                          <span className="font-medium">Inserted:</span>{" "}
+                          {pdfImportResult.insertedCount} voters
+                        </p>
+                        <p>
+                          <span className="font-medium">
+                            Duplicates skipped:
+                          </span>{" "}
+                          {pdfImportResult.duplicateCount}
+                        </p>
+                        <p>
+                          <span className="font-medium">Total extracted:</span>{" "}
+                          {pdfImportResult.extracted?.length || 0} records
+                        </p>
+                      </div>
+                      {pdfImportResult.duplicateCount > 0 && (
+                        <details className="mt-2">
+                          <summary className="text-xs text-emerald-600 cursor-pointer hover:text-emerald-800">
+                            View duplicate EPIC numbers
+                          </summary>
+                          <div className="mt-2 max-h-32 overflow-y-auto text-xs bg-white rounded p-2 border">
+                            {pdfImportResult.duplicates?.map(
+                              (d: any, i: number) => (
+                                <span
+                                  key={i}
+                                  className="inline-block bg-gray-100 rounded px-2 py-0.5 m-0.5"
+                                >
+                                  {d.epicNo}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        </details>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Error Display */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-xl border border-red-200 bg-red-50 p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-6 h-6 text-red-600 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-red-800">Error</h4>
+                      <p className="text-sm text-red-700 mt-1">{error}</p>
+                    </div>
+                    <button
+                      onClick={() => setError(null)}
+                      className="text-red-400 hover:text-red-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 border-t flex justify-end gap-3 rounded-b-xl">
+              <button
+                type="button"
+                onClick={() => {
+                  setPdfImportModalOpen(false);
+                  resetPdfImport();
+                }}
+                className="btn btn-ghost"
+                disabled={isPdfUploading}
+              >
+                {pdfImportResult ? "Close" : "Cancel"}
+              </button>
+              {!pdfImportResult && (
+                <button
+                  type="button"
+                  onClick={handlePdfImport}
+                  disabled={isPdfUploading || !pdfFile}
+                  className="btn bg-emerald-600 hover:bg-emerald-700 text-white border-0"
+                >
+                  {isPdfUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Import Voters
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </motion.div>
         </div>
       )}
 

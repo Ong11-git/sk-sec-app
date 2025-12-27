@@ -1,32 +1,38 @@
 import prisma from "../../prisma/prisma.js";
 
 const districts = [
-  "Gangtok",
-  "Namchi",
-  "Pakyong",
-  "Soreng",
-  "Mangan",
-  "Gyalshing",
+  { name: "Gangtok", code: "GTK" },
+  { name: "Namchi", code: "NMC" },
+  { name: "Pakyong", code: "PKY" },
+  { name: "Soreng", code: "SRG" },
+  { name: "Mangan", code: "MGN" },
+  { name: "Gyalshing", code: "GYL" },
 ];
 
 export async function seedDistricts() {
-  for (const name of districts) {
-    const existing = await prisma.district.findUnique({
-      where: { name },
-    });
+  try {
+    for (const district of districts) {
+      const existing = await prisma.district.findUnique({
+        where: { name: district.name },
+      });
 
-    if (existing) {
-      console.log(`⏩ Skipped (already exists): ${name}`);
-      continue;
+      if (existing) {
+        console.log(`⏩ Skipped (already exists): ${district.name}`);
+        continue;
+      }
+
+      await prisma.district.create({
+        data: {
+          name: district.name,
+          code: district.code,
+        },
+      });
+
+      console.log(`✅ Added: ${district.name}`);
     }
 
-    await prisma.district.create({
-      data: { name },
-    });
-
-    console.log(`✅ Added: ${name}`);
+    console.log("🎉 Districts seeding complete!");
+  } catch (error) {
+    console.error("❌ Error seeding districts:", error.message);
   }
-
-  console.log("🎉 Districts seeding complete!");
 }
-

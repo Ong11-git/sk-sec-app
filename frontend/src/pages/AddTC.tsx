@@ -50,7 +50,7 @@ export default function TC() {
   const [selectedDistrict, setSelectedDistrict] = useState<{
     value: number;
     label: string;
-    code: string | null;
+    code?: string | null | undefined;
   } | null>(null);
   const [selectedConstituency, setSelectedConstituency] = useState<{
     value: number;
@@ -207,7 +207,10 @@ export default function TC() {
     }
   };
 
-  const fetchTcs = async () => {
+  const fetchTcs = async (skipLoading = false) => {
+    if (!skipLoading) {
+      setLoading(true);
+    }
     try {
       const token = sessionStorage.getItem("token");
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/tcs`, {
@@ -219,7 +222,9 @@ export default function TC() {
     } catch (err: any) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (!skipLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -308,7 +313,13 @@ export default function TC() {
         }
       );
       if (!res.ok) throw new Error("Failed to delete TC");
-      setTc((prev) => prev.filter((t) => t.id !== id));
+
+      // Remove the deleted TC from local state immediately
+      setTc((prev) => prev.filter((t) => Number(t.id) !== Number(id)));
+
+      // Revalidate by refetching in the background
+      fetchTcs(true);
+
       setDeleteId(null);
       setSuccessMsg("Territorial Constituency deleted successfully");
       setTimeout(() => setSuccessMsg(undefined), 3000);
@@ -373,7 +384,7 @@ export default function TC() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.3, ease: "easeOut" },
+      transition: { duration: 0.3 },
     },
   };
 
@@ -385,7 +396,6 @@ export default function TC() {
       y: 0,
       transition: {
         duration: 0.2,
-        ease: "easeOut",
       },
     },
     exit: {

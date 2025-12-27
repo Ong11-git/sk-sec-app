@@ -4,13 +4,11 @@ import {
   Map,
   Flag,
   Layers,
-  Users,
   Filter,
   UserPlus,
   X,
   Home,
   ChevronLeft,
-  Menu,
   LogOut,
   User,
   Shield,
@@ -335,16 +333,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         >
           {renderSidebarContent()}
         </aside>
-
-        {!isOpen && (
-          <button
-            onClick={() => setSidebarCollapsed(false)}
-            className="fixed top-4 left-4 z-30 lg:hidden w-12 h-12 bg-gradient-to-r from-[#061E47] to-[#0A2E6E] text-white rounded-xl shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
-            aria-label="Open menu"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-        )}
       </>
     );
   }

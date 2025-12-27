@@ -4,7 +4,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  MapPin,
   Building2,
 } from "lucide-react";
 import { FiEdit, FiPlus, FiTrash } from "react-icons/fi";
@@ -49,7 +48,7 @@ export default function Municipality() {
   const [selectedDistrict, setSelectedDistrict] = useState<{
     value: number;
     label: string;
-    code: string | null;
+    code?: string | null | undefined;
   } | null>(null);
   const [selectedConstituency, setSelectedConstituency] = useState<{
     value: number;
@@ -396,7 +395,7 @@ export default function Municipality() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.3, ease: "easeOut" },
+      transition: { duration: 0.3 },
     },
   };
 
@@ -408,7 +407,6 @@ export default function Municipality() {
       y: 0,
       transition: {
         duration: 0.2,
-        ease: "easeOut",
       },
     },
     exit: {

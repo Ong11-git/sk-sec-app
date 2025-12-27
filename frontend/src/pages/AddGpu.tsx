@@ -4,7 +4,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  MapPin,
   Building,
 } from "lucide-react";
 import { FiEdit, FiPlus, FiTrash } from "react-icons/fi";
@@ -56,7 +55,7 @@ export default function AddGpu() {
   const [selectedDistrict, setSelectedDistrict] = useState<{
     value: number;
     label: string;
-    code: string | null;
+    code?: string | null | undefined;
   } | null>(null);
   const [selectedConstituency, setSelectedConstituency] = useState<{
     value: number;
@@ -447,7 +446,7 @@ export default function AddGpu() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.3, ease: "easeOut" },
+      transition: { duration: 0.3 },
     },
   };
 
@@ -459,7 +458,6 @@ export default function AddGpu() {
       y: 0,
       transition: {
         duration: 0.2,
-        ease: "easeOut",
       },
     },
     exit: {
