@@ -1033,28 +1033,28 @@ export default function AddVoters() {
         initial={{ y: -10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="mb-6"
+        className="mb-6 print:hidden"
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-2 print:hidden">
               <motion.div
                 whileHover={{ rotate: 90 }}
                 transition={{ duration: 0.2 }}
                 className="p-2 bg-gradient-to-br from-[#061E47] to-[#0A2B6B] rounded-lg shadow"
               >
-                <Home className="w-4 h-4 text-white" />
+                <Home className="w-4 h-4 text-white print:hidden" />
               </motion.div>
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900">
                   Voter Management System
                 </h1>
-                <p className="text-gray-600 text-xs mt-1">
+                <p className="text-gray-600 text-xs mt-1 print:hidden">
                   State Election Commission, Sikkim
                 </p>
               </div>
             </div>
-            <p className="text-gray-600 ml-11 hidden md:block text-sm">
+            <p className="text-gray-600 ml-11 hidden md:block text-sm print:hidden">
               Manage voter records with complete CRUD operations and photo
               upload
             </p>
@@ -1103,7 +1103,7 @@ export default function AddVoters() {
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.05 }}
-        className="mb-6"
+        className="mb-6 print:hidden"
       >
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
@@ -1211,7 +1211,7 @@ export default function AddVoters() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200"
+        className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 print:hidden"
       >
         {/* Table Header */}
         <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -3994,7 +3994,7 @@ export default function AddVoters() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="mt-6 pt-4 border-t border-gray-200"
+        className="mt-6 pt-4 border-t border-gray-200 print:hidden"
       >
         <p className="text-center text-xs text-gray-500">
           © 2024 State Election Commission, Sikkim • Voter Management System

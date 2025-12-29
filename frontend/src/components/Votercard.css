@@ -42,12 +42,26 @@
 
 /* Print Styles */
 @media print {
+  html,
   body {
     margin: 0;
     padding: 0;
     background: white !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    overflow: hidden !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    height: 100vh !important;
+    width: 100vw !important;
+  }
+
+  .modal {
+    overflow: hidden !important;
+  }
+
+  ::-webkit-scrollbar {
+    display: none !important;
   }
 
   @page {
@@ -81,11 +95,11 @@
     display: block !important;
     margin: 0;
     width: 100%;
-    height: auto;
+    height: 100%;
   }
 
   .card-front {
-    page-break-after: always;
+    margin-bottom: 20px;
   }
 
   img {
@@ -99,6 +113,22 @@
   }
 
   button {
+    display: none !important;
+  }
+
+  /* Hide page titles and headers during printing */
+  h1,
+  h4,
+  h5,
+  h6 {
+    display: none !important;
+  }
+
+  /* Hide any elements that might contain page titles */
+  .page-title,
+  .page-header,
+  .title,
+  .header {
     display: none !important;
   }
 }

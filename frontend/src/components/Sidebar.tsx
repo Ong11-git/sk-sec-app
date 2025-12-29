@@ -324,7 +324,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
 
         <aside
-          className="fixed inset-y-0 left-0 z-50 w-72 transition-transform duration-300 ease-in-out"
+          className="fixed inset-y-0 left-0 z-50 w-72 transition-transform duration-300 ease-in-out print:hidden"
           style={{
             height: "100vh",
             transform: isOpen ? "translateX(0)" : "translateX(-100%)",
@@ -339,7 +339,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className="hidden lg:flex fixed left-0 top-0 z-30 transition-all duration-300 ease-in-out"
+      className="hidden lg:flex fixed left-0 top-0 z-30 transition-all duration-300 ease-in-out print:hidden"
       style={{
         height: "100vh",
         width: sidebarCollapsed ? "80px" : "260px",

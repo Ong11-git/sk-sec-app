@@ -3,7 +3,7 @@ import { Menu } from "lucide-react";
 const MobileHeader: React.FC<{ onMenuClick: () => void }> = ({
   onMenuClick,
 }) => (
-  <div className="lg:hidden bg-gray-50 shadow-sm border-b border-base-200">
+  <div className="lg:hidden bg-gray-50 shadow-sm border-b border-base-200 print:hidden">
     <div className="flex items-center justify-between p-4">
       <div>
         <h2 className="text-lg font-bold text-base-content">
