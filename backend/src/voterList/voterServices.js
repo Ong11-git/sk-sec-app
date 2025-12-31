@@ -1,6 +1,8 @@
 import prisma from "../../prisma/prisma.js";
 import cloudinary from "../config/cloudinary.js";
 
+const pad2 = (num) => String(num).padStart(2, "0");
+
 export async function getAllVoters() {
   return await prisma.voter.findMany({
     include: {
@@ -1209,4 +1211,94 @@ function mapOptionalRelations(data) {
       municipalWard: { connect: { id: Number(data.municipalWardId) } },
     }),
   };
+}
+
+async function getNextVoterSerial(tx, whereClause) {
+  const voters = await tx.voter.findMany({
+    where: {
+      ...whereClause,
+      stateEpicNo: { not: null },
+    },
+    select: { stateEpicNo: true },
+  });
+
+  let max = 0;
+
+  for (const v of voters) {
+    const lastTwo = Number(v.stateEpicNo.slice(-2));
+    if (!Number.isNaN(lastTwo)) {
+      max = Math.max(max, lastTwo);
+    }
+  }
+
+  return String(max + 1).padStart(2, "0");
+}
+
+export async function generateStateEpicNo(voterId) {
+  return await prisma.$transaction(async (tx) => {
+    const voter = await tx.voter.findUnique({
+      where: { id: Number(voterId) },
+      include: {
+        district: true,
+        constituency: true,
+        tc: true,
+        gpu: true,
+        ward: true,
+        municipality: true,
+        municipalWard: true,
+      },
+    });
+
+    if (!voter) throw new Error("Voter not found");
+
+    if (voter.stateEpicNo) {
+      throw new Error("State EPIC number already generated");
+    }
+
+    const districtCode = voter.district.code;
+    if (!districtCode) throw new Error("District code missing");
+
+    const constituencyNo = pad2(voter.constituency?.constituencyNo);
+
+    let stateEpicNo = "";
+
+    // =============================
+    // RURAL PATH
+    // =============================
+    if (voter.wardId && voter.gpuId && voter.tcId) {
+      const tcNo = pad2(voter.tc.tc_no);
+      const gpuNo = pad2(voter.gpu.gpu_no);
+      const wardNo = pad2(voter.ward.ward_no);
+
+      const voterNo = await getNextVoterSerial(tx, {
+        wardId: voter.wardId,
+      });
+
+      stateEpicNo = `SK${districtCode}${constituencyNo}${tcNo}${gpuNo}${wardNo}${voterNo}`;
+    }
+
+    // =============================
+    // URBAN PATH
+    // =============================
+    else if (voter.municipalWardId && voter.municipalityId) {
+      const municipalityNo = pad2(voter.municipality.municipalityNo);
+      const municipalWardNo = pad2(voter.municipalWard.ward_no);
+
+      const voterNo = await getNextVoterSerial(tx, {
+        municipalWardId: voter.municipalWardId,
+      });
+
+      stateEpicNo = `SK${districtCode}${constituencyNo}${municipalityNo}00${municipalWardNo}${voterNo}`;
+    } else {
+      throw new Error("Invalid voter hierarchy (neither rural nor urban)");
+    }
+
+    // =============================
+    // SAVE
+    // =============================
+    return await tx.voter.update({
+      where: { id: voter.id },
+      data: { stateEpicNo },
+    });
+  });
 }

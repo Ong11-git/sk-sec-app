@@ -22,6 +22,7 @@ import {
   updateVoter,
   deleteVoter,
   permanentlyDeleteVoter,
+  generateStateEpicNo
 } from "./voterServices.js";
 import uploadTempPhoto from "../middlewares/uploadTempPhoto.js";
 import cloudinary from "../config/cloudinary.js";
@@ -462,6 +463,25 @@ voterRouter.delete(
       });
     } catch (error) {
       console.error("Error permanently deleting voter:", error.message);
+      res.status(400).json({ error: error.message });
+    }
+  }
+);
+
+voterRouter.post(
+  "/:id/generate-state-epic",
+  authenticateToken,
+  authorizeAdminOrUser,
+  async (req, res) => {
+    try {
+      const voter = await generateStateEpicNo(req.params.id);
+
+      res.json({
+        message: "State EPIC number generated successfully",
+        stateEpicNo: voter.stateEpicNo,
+      });
+    } catch (error) {
+      console.error("State EPIC generation error:", error.message);
       res.status(400).json({ error: error.message });
     }
   }
