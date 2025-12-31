@@ -15,6 +15,7 @@ import municipalityRouter from "./src/municipality/municipalityRoute.js";
 import municipalWardRouter from "./src/municipalWard/municipalWardRoute.js";
 import { seedVoters } from "./src/voterList/seedVoters.js";
 import { seedAllData } from "./src/seeds/seedAllData.js";
+import analyticsRouter from "./src/analytics/analyticsRoute.js";
 
 const app = express();
 const PORT = 8080;
@@ -38,7 +39,9 @@ seedDistricts();
 //   });
 // });
 
+// seedConstituencies();
 app.use("/user", userRouter);
+app.use("/analytics", analyticsRouter);
 app.use("/pdf", pdfRouter);
 app.use("/voters", voterRouter);
 app.use("/constituencies", constituencyRouter);
