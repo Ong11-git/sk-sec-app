@@ -694,7 +694,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sidebarCollapsed = false }) => {
       {/* Footer Note */}
       <div className="mt-6 md:mt-8 pt-4 border-t border-gray-200">
         <p className="text-center text-sm text-gray-500">
-          Data refreshed automatically. For official use only. © 2024 State
+          Data refreshed automatically. For official use only. © 2026 State
           Election Commission, Sikkim
         </p>
       </div>

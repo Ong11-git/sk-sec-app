@@ -3997,7 +3997,7 @@ export default function AddVoters() {
         className="mt-6 pt-4 border-t border-gray-200 print:hidden"
       >
         <p className="text-center text-xs text-gray-500">
-          © 2024 State Election Commission, Sikkim • Voter Management System
+          © 2026 State Election Commission, Sikkim • Voter Management System
           v2.0
         </p>
       </motion.div>

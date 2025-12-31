@@ -300,7 +300,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <span className="font-semibold text-[#061E47]">v2.4.1</span>
             </div>
             <p className="text-[10px] text-gray-400 text-center mt-2">
-              © {new Date().getFullYear()} SEC Portal
+              © 2026 SEC Portal
             </p>
           </div>
         </div>

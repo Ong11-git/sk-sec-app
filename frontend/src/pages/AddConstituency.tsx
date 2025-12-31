@@ -1171,7 +1171,7 @@ export default function AddConstituency() {
         className="mt-6 pt-4 border-t border-gray-200"
       >
         <p className="text-center text-xs text-gray-500">
-          © 2024 State Election Commission, Sikkim • Constituency Management
+          © 2026 State Election Commission, Sikkim • Constituency Management
           System v1.0
         </p>
       </motion.div>

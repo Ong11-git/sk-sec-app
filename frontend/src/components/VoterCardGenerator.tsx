@@ -194,7 +194,7 @@ export default function VoterCardGenerator({
                   style={{
                     width: "100%",
                     height: "100%",
-                    backgroundImage: "url(/card/6488996.jpg)",
+                    backgroundImage: "url(/card/frontcard.jpg)",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     backgroundColor: "#d4c5f0",
@@ -397,7 +397,7 @@ export default function VoterCardGenerator({
                   style={{
                     width: "100%",
                     height: "100%",
-                    backgroundImage: "url(/card/6558736.jpg)",
+                    backgroundImage: "url(/card/backcard.jpg)",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     backgroundColor: "#f5d7a8",
@@ -606,7 +606,7 @@ export default function VoterCardGenerator({
         {/* Footer */}
         <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 print:hidden">
           <p className="text-xs text-gray-500 text-center">
-            © 2024 State Election Commission, Sikkim • Official Voter ID Card
+            © 2026 State Election Commission, Sikkim • Official Voter ID Card
             Generator
           </p>
         </div>
