@@ -986,6 +986,46 @@ export async function updateVoter(id, data) {
 
     await validateForeignKeys(data);
 
+    /* ============================
+       RURAL ↔ URBAN EXCLUSIVITY
+    ============================ */
+    // const ruralFieldsPassed =
+    //   "tcId" in data || "gpuId" in data || "wardId" in data;
+
+    // const urbanFieldsPassed =
+    //   "municipalityId" in data || "municipalWardId" in data;
+
+    // // If rural hierarchy is updated → clear urban
+    // if (ruralFieldsPassed) {
+    //   data.municipalityId = null;
+    //   data.municipalWardId = null;
+    // }
+
+    // // If urban hierarchy is updated → clear rural
+    // if (urbanFieldsPassed) {
+    //   data.tcId = null;
+    //   data.gpuId = null;
+    //   data.wardId = null;
+    // }
+    const hasValidRuralSelection =
+      data.tcId != null || data.gpuId != null || data.wardId != null;
+
+    const hasValidUrbanSelection =
+      data.municipalityId != null || data.municipalWardId != null;
+
+    // If valid rural hierarchy is selected → clear urban
+    if (hasValidRuralSelection) {
+      data.municipalityId = null;
+      data.municipalWardId = null;
+    }
+
+    // If valid urban hierarchy is selected → clear rural
+    if (hasValidUrbanSelection) {
+      data.tcId = null;
+      data.gpuId = null;
+      data.wardId = null;
+    }
+
     return await prisma.voter.update({
       where: { id: voterId },
       data: {
@@ -998,6 +1038,18 @@ export async function updateVoter(id, data) {
         }),
 
         ...mapOptionalRelations(data),
+
+        // Explicit disconnects (CRITICAL)
+        ...(data.tcId === null && { tc: { disconnect: true } }),
+        ...(data.gpuId === null && { gpu: { disconnect: true } }),
+        ...(data.wardId === null && { ward: { disconnect: true } }),
+
+        ...(data.municipalityId === null && {
+          municipality: { disconnect: true },
+        }),
+        ...(data.municipalWardId === null && {
+          municipalWard: { disconnect: true },
+        }),
       },
       include: {
         district: {
