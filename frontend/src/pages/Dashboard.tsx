@@ -13,7 +13,6 @@ import {
   Globe,
   Users2,
   RefreshCw,
-  Download,
   Calendar,
 } from "lucide-react";
 import {
@@ -266,10 +265,10 @@ const Dashboard: React.FC<DashboardProps> = ({ sidebarCollapsed = false }) => {
             />
             {isRefreshing ? "Refreshing..." : "Refresh Data"}
           </button>
-          <button className="btn btn-sm md:btn-md bg-[#061E47] hover:bg-[#0A2B6B] text-white border-0 transition-all duration-200 hover:scale-105 active:scale-95">
+          {/* <button className="btn btn-sm md:btn-md bg-[#061E47] hover:bg-[#0A2B6B] text-white border-0 transition-all duration-200 hover:scale-105 active:scale-95">
             <Download className="w-4 h-4 mr-2" />
             Export Report
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -695,7 +694,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sidebarCollapsed = false }) => {
       {/* Footer Note */}
       <div className="mt-6 md:mt-8 pt-4 border-t border-gray-200">
         <p className="text-center text-sm text-gray-500">
-          Data refreshed automatically. For official use only. © 2024 State
+          Data refreshed automatically. For official use only. © 2026 State
           Election Commission, Sikkim
         </p>
       </div>

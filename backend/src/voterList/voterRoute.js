@@ -289,12 +289,283 @@ voterRouter.post(
             photo: uploadedImage.secure_url,
             photoPublicId: uploadedImage.public_id,
           },
+          include: {
+            district: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              },
+            },
+            constituency: {
+              select: {
+                id: true,
+                constituencyNo: true,
+                name: true,
+                districts: {
+                  include: {
+                    district: {
+                      select: { id: true, name: true, code: true },
+                    },
+                  },
+                },
+              },
+            },
+            tc: {
+              select: {
+                id: true,
+                tc_no: true,
+                tc_name: true,
+                constituency: {
+                  select: {
+                    id: true,
+                    constituencyNo: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            gpu: {
+              select: {
+                id: true,
+                gpu_no: true,
+                gpu_name: true,
+                tc: {
+                  select: {
+                    id: true,
+                    tc_no: true,
+                    tc_name: true,
+                    constituency: {
+                      select: {
+                        id: true,
+                        constituencyNo: true,
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            ward: {
+              select: {
+                id: true,
+                ward_no: true,
+                ward_name: true,
+                gpu: {
+                  select: {
+                    id: true,
+                    gpu_no: true,
+                    gpu_name: true,
+                    tc: {
+                      select: {
+                        id: true,
+                        tc_no: true,
+                        tc_name: true,
+                        constituency: {
+                          select: {
+                            id: true,
+                            constituencyNo: true,
+                            name: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            municipality: {
+              select: {
+                id: true,
+                name: true,
+                constituency: {
+                  select: {
+                    id: true,
+                    constituencyNo: true,
+                    name: true,
+                  },
+                },
+                district: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            municipalWard: {
+              select: {
+                id: true,
+                ward_no: true,
+                name: true,
+                municipality: {
+                  select: {
+                    id: true,
+                    name: true,
+                    constituency: {
+                      select: {
+                        id: true,
+                        constituencyNo: true,
+                        name: true,
+                      },
+                    },
+                    district: {
+                      select: {
+                        id: true,
+                        name: true,
+                        code: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         });
       }
 
+      // Get the complete voter with relations (for both photo and no-photo cases)
+      const completeVoter =
+        updatedVoter ||
+        (await prisma.voter.findUnique({
+          where: { id: voter.id },
+          include: {
+            district: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              },
+            },
+            constituency: {
+              select: {
+                id: true,
+                constituencyNo: true,
+                name: true,
+                districts: {
+                  include: {
+                    district: {
+                      select: { id: true, name: true, code: true },
+                    },
+                  },
+                },
+              },
+            },
+            tc: {
+              select: {
+                id: true,
+                tc_no: true,
+                tc_name: true,
+                constituency: {
+                  select: {
+                    id: true,
+                    constituencyNo: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            gpu: {
+              select: {
+                id: true,
+                gpu_no: true,
+                gpu_name: true,
+                tc: {
+                  select: {
+                    id: true,
+                    tc_no: true,
+                    tc_name: true,
+                    constituency: {
+                      select: {
+                        id: true,
+                        constituencyNo: true,
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            ward: {
+              select: {
+                id: true,
+                ward_no: true,
+                ward_name: true,
+                gpu: {
+                  select: {
+                    id: true,
+                    gpu_no: true,
+                    gpu_name: true,
+                    tc: {
+                      select: {
+                        id: true,
+                        tc_no: true,
+                        tc_name: true,
+                        constituency: {
+                          select: {
+                            id: true,
+                            constituencyNo: true,
+                            name: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            municipality: {
+              select: {
+                id: true,
+                name: true,
+                constituency: {
+                  select: {
+                    id: true,
+                    constituencyNo: true,
+                    name: true,
+                  },
+                },
+                district: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            municipalWard: {
+              select: {
+                id: true,
+                ward_no: true,
+                name: true,
+                municipality: {
+                  select: {
+                    id: true,
+                    name: true,
+                    constituency: {
+                      select: {
+                        id: true,
+                        constituencyNo: true,
+                        name: true,
+                      },
+                    },
+                    district: {
+                      select: {
+                        id: true,
+                        name: true,
+                        code: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }));
+
       res.status(201).json({
         message: "Voter created successfully",
-        voter: updatedVoter,
+        voter: completeVoter,
       });
     } catch (error) {
       // SAFETY: cleanup if upload happened but DB failed later
@@ -379,6 +650,138 @@ voterRouter.put(
           data: {
             photo: uploadedImage.secure_url,
             photoPublicId: uploadedImage.public_id,
+          },
+          include: {
+            district: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              },
+            },
+            constituency: {
+              select: {
+                id: true,
+                constituencyNo: true,
+                name: true,
+                districts: {
+                  include: {
+                    district: {
+                      select: { id: true, name: true, code: true },
+                    },
+                  },
+                },
+              },
+            },
+            tc: {
+              select: {
+                id: true,
+                tc_no: true,
+                tc_name: true,
+                constituency: {
+                  select: {
+                    id: true,
+                    constituencyNo: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            gpu: {
+              select: {
+                id: true,
+                gpu_no: true,
+                gpu_name: true,
+                tc: {
+                  select: {
+                    id: true,
+                    tc_no: true,
+                    tc_name: true,
+                    constituency: {
+                      select: {
+                        id: true,
+                        constituencyNo: true,
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            ward: {
+              select: {
+                id: true,
+                ward_no: true,
+                ward_name: true,
+                gpu: {
+                  select: {
+                    id: true,
+                    gpu_no: true,
+                    gpu_name: true,
+                    tc: {
+                      select: {
+                        id: true,
+                        tc_no: true,
+                        tc_name: true,
+                        constituency: {
+                          select: {
+                            id: true,
+                            constituencyNo: true,
+                            name: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            municipality: {
+              select: {
+                id: true,
+                name: true,
+                constituency: {
+                  select: {
+                    id: true,
+                    constituencyNo: true,
+                    name: true,
+                  },
+                },
+                district: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            municipalWard: {
+              select: {
+                id: true,
+                ward_no: true,
+                name: true,
+                municipality: {
+                  select: {
+                    id: true,
+                    name: true,
+                    constituency: {
+                      select: {
+                        id: true,
+                        constituencyNo: true,
+                        name: true,
+                      },
+                    },
+                    district: {
+                      select: {
+                        id: true,
+                        name: true,
+                        code: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         });
 

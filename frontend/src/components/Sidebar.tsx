@@ -1,23 +1,18 @@
-// ============================================
-// FILE: Sidebar.tsx
-// ============================================
-
 import { useState, useEffect } from "react";
 import {
   BarChart3,
   Map,
   Flag,
   Layers,
-  Users,
   Filter,
   UserPlus,
   X,
   Home,
   ChevronLeft,
-  Menu,
   LogOut,
   User,
   Shield,
+  Building2,
 } from "lucide-react";
 
 type TabKey =
@@ -29,7 +24,8 @@ type TabKey =
   | "territorialConstituency"
   | "district"
   | "gpu"
-  | "ward";
+  | "ward"
+  | "municipality";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -77,8 +73,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: Layers,
     },
     { key: "gpu" as TabKey, label: "GPU", icon: Home },
+    { key: "municipality" as TabKey, label: "Municipality", icon: Building2 },
     { key: "ward" as TabKey, label: "Ward", icon: Home },
-    { key: "voters" as TabKey, label: "Voters List", icon: Users },
+    // { key: "voters" as TabKey, label: "Voters List", icon: Users },
     { key: "votersFilters" as TabKey, label: "Voters Filters", icon: Filter },
     { key: "addVoters" as TabKey, label: "Add Voters", icon: UserPlus },
   ];
@@ -88,6 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     district: "text-green-500",
     constituency: "text-purple-500",
     territorialConstituency: "text-amber-500",
+    municipality: "text-cyan-500",
     voters: "text-teal-500",
     votersFilters: "text-pink-500",
     addVoters: "text-red-500",
@@ -302,7 +300,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <span className="font-semibold text-[#061E47]">v2.4.1</span>
             </div>
             <p className="text-[10px] text-gray-400 text-center mt-2">
-              © {new Date().getFullYear()} SEC Portal
+              © 2026 SEC Portal
             </p>
           </div>
         </div>
@@ -326,7 +324,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
 
         <aside
-          className="fixed inset-y-0 left-0 z-50 w-72 transition-transform duration-300 ease-in-out"
+          className="fixed inset-y-0 left-0 z-50 w-72 transition-transform duration-300 ease-in-out print:hidden"
           style={{
             height: "100vh",
             transform: isOpen ? "translateX(0)" : "translateX(-100%)",
@@ -335,23 +333,13 @@ const Sidebar: React.FC<SidebarProps> = ({
         >
           {renderSidebarContent()}
         </aside>
-
-        {!isOpen && (
-          <button
-            onClick={() => setSidebarCollapsed(false)}
-            className="fixed top-4 left-4 z-30 lg:hidden w-12 h-12 bg-gradient-to-r from-[#061E47] to-[#0A2E6E] text-white rounded-xl shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
-            aria-label="Open menu"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-        )}
       </>
     );
   }
 
   return (
     <aside
-      className="hidden lg:flex fixed left-0 top-0 z-30 transition-all duration-300 ease-in-out"
+      className="hidden lg:flex fixed left-0 top-0 z-30 transition-all duration-300 ease-in-out print:hidden"
       style={{
         height: "100vh",
         width: sidebarCollapsed ? "80px" : "260px",

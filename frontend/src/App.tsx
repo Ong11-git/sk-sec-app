@@ -1,5 +1,5 @@
 // ============================================
-// FILE: App.tsx
+// FILE: App.tsx (Updated with Municipality)
 // ============================================
 
 import { useState, useEffect } from "react";
@@ -16,6 +16,7 @@ import AddTC from "./pages/AddTC";
 import AddDistrict from "./pages/AddDistrict";
 import AddGpu from "./pages/AddGpu";
 import AddWard from "./pages/AddWard";
+import Municipality from "./pages/Municipality"; // Add this import
 
 // Main App Component
 function AppContent() {
@@ -29,6 +30,7 @@ function AppContent() {
     | "district"
     | "gpu"
     | "ward"
+    | "municipality" // Add municipality to the type
   >("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -116,6 +118,8 @@ function AppContent() {
         return <AddTC />;
       case "gpu":
         return <AddGpu />;
+      case "municipality": // Add municipality case
+        return <Municipality />;
       case "ward":
         return <AddWard />;
       case "voters":

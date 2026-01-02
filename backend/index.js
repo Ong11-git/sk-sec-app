@@ -8,20 +8,21 @@ import voterRouter from "./src/voterList/VoterRoute.js";
 import constituencyRouter from "./src/constituency/constituencyRoute.js";
 import districtRouter from "./src/district/districtRoute.js";
 import tcRouter from "./src/tc/tcRoute.js";
-import { seedConstituencies } from "./src/constituency/seedConstituencies.js";
 import { seedDistricts } from "./src/district/seedDistricts.js";
 import gpuRouter from "./src/gpu/gpuRoute.js";
 import wardRouter from "./src/ward/wardRoute.js";
 import municipalityRouter from "./src/municipality/municipalityRoute.js";
 import municipalWardRouter from "./src/municipalWard/municipalWardRoute.js";
 import analyticsRouter from "./src/analytics/analyticsRoute.js";
+import { seedVoters } from "./src/voterList/seedVoters.js";
+import { seedAllData } from "./src/seeds/seedAllData.js";
 
 const app = express();
 const PORT = 8080;
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // Your React app URL
+    origin: "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -32,6 +33,11 @@ app.use(bodyParser.json());
 
 seedAdmin();
 seedDistricts();
+// seedDistricts().then(() => {
+//   seedAllData().then(() => {
+//     seedVoters();
+//   });
+// });
 
 // seedConstituencies();
 

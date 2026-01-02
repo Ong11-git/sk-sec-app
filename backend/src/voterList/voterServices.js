@@ -5,6 +5,11 @@ const pad2 = (num) => String(num).padStart(2, "0");
 
 export async function getAllVoters() {
   return await prisma.voter.findMany({
+    where: {
+      status: {
+        not: "deleted",
+      },
+    },
     include: {
       district: {
         select: {
@@ -994,6 +999,138 @@ export async function updateVoter(id, data) {
 
         ...mapOptionalRelations(data),
       },
+      include: {
+        district: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+        constituency: {
+          select: {
+            id: true,
+            constituencyNo: true,
+            name: true,
+            districts: {
+              include: {
+                district: {
+                  select: { id: true, name: true, code: true },
+                },
+              },
+            },
+          },
+        },
+        tc: {
+          select: {
+            id: true,
+            tc_no: true,
+            tc_name: true,
+            constituency: {
+              select: {
+                id: true,
+                constituencyNo: true,
+                name: true,
+              },
+            },
+          },
+        },
+        gpu: {
+          select: {
+            id: true,
+            gpu_no: true,
+            gpu_name: true,
+            tc: {
+              select: {
+                id: true,
+                tc_no: true,
+                tc_name: true,
+                constituency: {
+                  select: {
+                    id: true,
+                    constituencyNo: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        ward: {
+          select: {
+            id: true,
+            ward_no: true,
+            ward_name: true,
+            gpu: {
+              select: {
+                id: true,
+                gpu_no: true,
+                gpu_name: true,
+                tc: {
+                  select: {
+                    id: true,
+                    tc_no: true,
+                    tc_name: true,
+                    constituency: {
+                      select: {
+                        id: true,
+                        constituencyNo: true,
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        municipality: {
+          select: {
+            id: true,
+            name: true,
+            constituency: {
+              select: {
+                id: true,
+                constituencyNo: true,
+                name: true,
+              },
+            },
+            district: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        municipalWard: {
+          select: {
+            id: true,
+            ward_no: true,
+            name: true,
+            municipality: {
+              select: {
+                id: true,
+                name: true,
+                constituency: {
+                  select: {
+                    id: true,
+                    constituencyNo: true,
+                    name: true,
+                  },
+                },
+                district: {
+                  select: {
+                    id: true,
+                    name: true,
+                    code: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
   } catch (error) {
     throw new Error(error.message || "Failed to update voter");
@@ -1177,15 +1314,15 @@ export async function permanentlyDeleteVoter(id) {
  */
 function mapOptionalRelations(data) {
   return {
-    age: data.age,
-    gender: data.gender,
-    photo: data.photo,
-    casteCategory: data.casteCategory,
-    country: data.country,
-    state: data.state,
-    relationType: data.relationType,
-    relationName: data.relationName,
-    status: data.status,
+    age: data.age ? Number(data.age) : undefined,
+    gender: data.gender || undefined,
+    photo: data.photo || undefined,
+    casteCategory: data.casteCategory || undefined,
+    country: data.country || undefined,
+    state: data.state || undefined,
+    relationType: data.relationType || undefined,
+    relationName: data.relationName || undefined,
+    status: data.status || undefined,
 
     ...(data.constituencyId && {
       constituency: { connect: { id: Number(data.constituencyId) } },
