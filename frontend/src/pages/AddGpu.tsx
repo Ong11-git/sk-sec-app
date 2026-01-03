@@ -696,7 +696,7 @@ export default function AddGpu() {
                   District Name
                 </th>
                 <th className="text-gray-700 font-semibold py-3 px-4 text-xs uppercase tracking-wider">
-                  Constituency Name
+                  Constituency Name & No
                 </th>
                 <th className="text-gray-700 font-semibold py-3 px-4 text-xs uppercase tracking-wider">
                   TC Name

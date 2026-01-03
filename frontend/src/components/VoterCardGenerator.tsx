@@ -45,10 +45,10 @@ export default function VoterCardGenerator({
     }
 
     // Always show Constituency No and Name separately
-    if (voter.constituency?.no) {
+    if (voter.constituency?.constituencyNo) {
       fields.push({
         label: "Constituency No:",
-        value: voter.constituency.no.toString(),
+        value: voter.constituency.constituencyNo.toString(),
       });
     }
 
@@ -60,47 +60,47 @@ export default function VoterCardGenerator({
     }
 
     // Always show T.C No and Name separately
-    if (voter.tc?.no) {
+    if (voter.tc?.tc_no) {
       fields.push({
         label: "T.C No:",
-        value: voter.tc.no,
+        value: voter.tc.tc_no,
       });
     }
 
-    if (voter.tc?.name) {
+    if (voter.tc?.tc_name) {
       fields.push({
         label: "T.C Name:",
-        value: voter.tc.name,
+        value: voter.tc.tc_name,
       });
     }
 
     // Always show GPU No and Name separately
-    if (voter.gpu?.no) {
+    if (voter.gpu?.gpu_no) {
       fields.push({
         label: "GPU No:",
-        value: voter.gpu.no,
+        value: voter.gpu.gpu_no,
       });
     }
 
-    if (voter.gpu?.name) {
+    if (voter.gpu?.gpu_name) {
       fields.push({
         label: "GPU Name:",
-        value: voter.gpu.name,
+        value: voter.gpu.gpu_name,
       });
     }
 
     // Always show Ward No and Name separately
-    if (voter.ward?.no) {
+    if (voter.ward?.ward_no) {
       fields.push({
         label: "Ward No:",
-        value: voter.ward.no,
+        value: voter.ward.ward_no,
       });
     }
 
-    if (voter.ward?.name) {
+    if (voter.ward?.ward_name) {
       fields.push({
         label: "Ward Name:",
-        value: voter.ward.name,
+        value: voter.ward.ward_name,
       });
     }
 
@@ -113,17 +113,17 @@ export default function VoterCardGenerator({
     }
 
     // Always show Municipal Ward No and Name separately
-    if (voter.municipal_ward?.no) {
+    if (voter.municipalWard?.ward_no) {
       fields.push({
         label: "Municipal Ward No:",
-        value: voter.municipal_ward.no,
+        value: voter.municipalWard.ward_no,
       });
     }
 
-    if (voter.municipal_ward?.name) {
+    if (voter.municipalWard?.name) {
       fields.push({
         label: "Municipal Ward Name:",
-        value: voter.municipal_ward.name,
+        value: voter.municipalWard.name,
       });
     }
 

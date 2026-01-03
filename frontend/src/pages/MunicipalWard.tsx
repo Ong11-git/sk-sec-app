@@ -12,51 +12,34 @@ import { useEffect, useState } from "react";
 import Select from "react-select";
 import type { StylesConfig } from "react-select";
 
-type District = {
+type Municipality = {
   id: number;
   name: string;
-  code: string | null;
+  municipalityNo: number;
 };
-type Constituency = {
+type MunicipalWardItem = {
   id: number;
+  ward_no: number;
   name: string;
-  constituencyNo: number;
-  code?: string | null;
-  districts?: District[];
-};
-type MunicipalityItem = {
-  id: number;
-  municipality_no: number;
-  municipality_name: string;
-  constituency?: Constituency;
-  district?: District;
-  districtId?: number;
-  constituencyId?: number;
+  municipality?: Municipality;
 };
 
-export default function Municipality() {
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [constituencies, setConstituencies] = useState<Constituency[]>([]);
-  const [municipalities, setMunicipalities] = useState<MunicipalityItem[]>([]);
+export default function MunicipalWard() {
+  const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
+  const [municipalWards, setMunicipalWards] = useState<MunicipalWardItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState<
-    "name" | "district" | "constituency" | "number"
+    "name" | "municipality" | "number"
   >("name");
   const [modalOpen, setModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [selectedDistrict, setSelectedDistrict] = useState<{
+  const [selectedMunicipality, setSelectedMunicipality] = useState<{
     value: number;
     label: string;
-    code?: string | null | undefined;
   } | null>(null);
-  const [selectedConstituency, setSelectedConstituency] = useState<{
-    value: number;
-    label: string;
-    code?: string | null;
-  } | null>(null);
-  const [municipalityNo, setMunicipalityNo] = useState<number | "">("");
-  const [municipalityName, setMunicipalityName] = useState("");
+  const [wardNo, setWardNo] = useState<number | "">("");
+  const [wardName, setWardName] = useState("");
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -69,219 +52,129 @@ export default function Municipality() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Filter Municipalities based on search
-  const filteredMunicipalities = municipalities.filter((item) => {
+  // Filter Municipal Wards based on search
+  const filteredMunicipalWards = municipalWards.filter((item) => {
     if (!searchQuery.trim()) return true;
 
     const query = searchQuery.toLowerCase();
 
     if (searchType === "name") {
-      return item.municipality_name.toLowerCase().includes(query);
-    } else if (searchType === "district") {
-      const districtName = item.district?.name;
-      const districtCode = item.district?.code;
+      return item.name.toLowerCase().includes(query);
+    } else if (searchType === "municipality") {
+      const municipalityName = item.municipality?.name;
+      const municipalityNo = item.municipality?.municipalityNo;
       return (
-        districtName?.toLowerCase().includes(query) ||
-        districtCode?.toLowerCase().includes(query)
-      );
-    } else if (searchType === "constituency") {
-      const constituencyName = item.constituency?.name;
-      const constituencyNo = item.constituency?.constituencyNo;
-      return (
-        constituencyName?.toLowerCase().includes(query) ||
-        constituencyNo?.toString().includes(query)
+        municipalityName?.toLowerCase().includes(query) ||
+        municipalityNo?.toString().includes(query)
       );
     } else if (searchType === "number") {
-      return item.municipality_no.toString().includes(query);
+      return item.ward_no.toString().includes(query);
     }
     return true;
   });
 
-  const sortedMunicipalities = [...filteredMunicipalities].sort(
-    (a, b) => a.id - b.id
+  const sortedMunicipalWards = [...filteredMunicipalWards].sort(
+    (a, b) => a.ward_no - b.ward_no
   );
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = sortedMunicipalities.slice(
+  const currentItems = sortedMunicipalWards.slice(
     indexOfFirstItem,
     indexOfLastItem
   );
-  const totalPages = Math.ceil(sortedMunicipalities.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedMunicipalWards.length / itemsPerPage);
 
-  // react-select styles
-  const selectStyles: StylesConfig<
-    { value: number; label: string; code?: string | null },
-    false
-  > = {
-    control: (base, state) => ({
-      ...base,
-      minHeight: "38px",
-      borderColor: state.isFocused ? "#061E47" : "#D1D5DB",
-      borderWidth: "1px",
-      boxShadow: state.isFocused ? "0 0 0 2px rgba(6, 30, 71, 0.1)" : "none",
-      "&:hover": { borderColor: "#061E47" },
-      fontSize: "0.875rem",
-      borderRadius: "6px",
-      backgroundColor: "white",
-      transition: "all 0.2s ease-in-out",
-    }),
-    menu: (base) => ({
-      ...base,
-      borderRadius: "6px",
-      border: "1px solid #E5E7EB",
-      boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
-      zIndex: 9999,
-      marginTop: "4px",
-      overflow: "hidden",
-    }),
-    menuPortal: (base) => ({
-      ...base,
-      zIndex: 9999,
-    }),
-    menuList: (base) => ({
-      ...base,
-      padding: 0,
-      maxHeight: "180px",
-    }),
-    option: (base, state) => ({
-      ...base,
-      backgroundColor: state.isSelected
-        ? "#061E47"
-        : state.isFocused
-        ? "rgba(6, 30, 71, 0.05)"
-        : "white",
-      color: state.isSelected ? "white" : "#1E293B",
-      fontSize: "0.875rem",
-      padding: "8px 12px",
-      cursor: "pointer",
-      transition: "all 0.15s ease",
-      "&:active": {
-        backgroundColor: state.isSelected ? "#061E47" : "rgba(6, 30, 71, 0.1)",
-      },
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-    }),
-    placeholder: (base) => ({
-      ...base,
-      color: "#9CA3AF",
-      fontSize: "0.875rem",
-    }),
-    indicatorsContainer: (base) => ({
-      ...base,
-      padding: "0 6px",
-    }),
-    indicatorSeparator: (base) => ({
-      ...base,
-      backgroundColor: "#D1D5DB",
-    }),
-    dropdownIndicator: (base, state) => ({
-      ...base,
-      color: state.isFocused ? "#061E47" : "#6B7280",
-      padding: "6px",
-      transition: "color 0.2s",
-      "&:hover": {
-        color: "#061E47",
-      },
-    }),
-    clearIndicator: (base) => ({
-      ...base,
-      color: "#6B7280",
-      padding: "6px",
-      "&:hover": {
-        color: "#EF4444",
-      },
-    }),
-  };
-
+  // Fetch Municipalities
   useEffect(() => {
-    fetchDistricts();
+    const fetchMunicipalities = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/municipalities/all`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) throw new Error("Failed to fetch municipalities");
+
+        const data = await res.json();
+        setMunicipalities(data);
+      } catch (err: any) {
+        setError(err.message);
+      }
+    };
+
     fetchMunicipalities();
   }, []);
 
-  const fetchDistricts = async () => {
-    try {
-      const token = sessionStorage.getItem("token");
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/districts`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (!res.ok) throw new Error("Failed to fetch districts");
-      const data = await res.json();
-      setDistricts(data);
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
+  // Fetch Municipal Wards
+  useEffect(() => {
+    const fetchMunicipalWards = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/municipal-wards/all`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-  const fetchMunicipalities = async () => {
-    try {
-      const token = sessionStorage.getItem("token");
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/municipalities/all`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (!res.ok) throw new Error("Failed to fetch municipalities");
-      const data = await res.json();
-      setMunicipalities(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (!res.ok) throw new Error("Failed to fetch municipal wards");
 
-  const fetchConstituencies = async (districtId: number) => {
-    try {
-      const token = sessionStorage.getItem("token");
-      const res = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
-        }/constituencies/by-district/${districtId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (!res.ok) throw new Error("Failed to fetch constituencies");
-      const data = await res.json();
-      setConstituencies(data);
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
+        const data = await res.json();
+        setMunicipalWards(data.wards);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMunicipalWards();
+  }, []);
 
   const resetForm = () => {
-    setSelectedDistrict(null);
-    setSelectedConstituency(null);
-    setMunicipalityNo("");
-    setMunicipalityName("");
+    setSelectedMunicipality(null);
+    setWardNo("");
+    setWardName("");
     setEditingId(null);
-    setConstituencies([]);
-    setError(null);
   };
 
-  const handleSave = async () => {
-    if (
-      !municipalityNo ||
-      !municipalityName.trim() ||
-      !selectedConstituency ||
-      !selectedDistrict
-    ) {
-      setError("Please fill all required fields");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedMunicipality || !wardNo || !wardName.trim()) {
+      setError("All fields are required");
       return;
     }
 
     try {
       setIsLoading(true);
+      setError(null);
+
       const token = sessionStorage.getItem("token");
       const url = editingId
         ? `${
             import.meta.env.VITE_API_BASE_URL
-          }/municipalities/edit/${editingId}`
-        : `${import.meta.env.VITE_API_BASE_URL}/municipalities/create`;
+          }/municipal-wards/edit/${editingId}`
+        : `${import.meta.env.VITE_API_BASE_URL}/municipal-wards/create`;
+
       const method = editingId ? "PUT" : "POST";
+      const body = editingId
+        ? { name: wardName, wardNo: Number(wardNo) }
+        : {
+            name: wardName,
+            wardNo: Number(wardNo),
+            municipalityId: selectedMunicipality.value,
+          };
 
       const res = await fetch(url, {
         method,
@@ -289,78 +182,64 @@ export default function Municipality() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          municipalityNo: Number(municipalityNo),
-          name: municipalityName.trim(),
-          constituencyId: selectedConstituency.value,
-          districtId: selectedDistrict.value,
-        }),
+        body: JSON.stringify(body),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to save municipality");
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to save municipal ward");
+      }
 
-      setSuccessMsg(data.message || "Municipality saved successfully!");
-      setError(null);
-      resetForm();
-      setModalOpen(false);
-      fetchMunicipalities();
+      const data = await res.json();
+
+      if (editingId) {
+        setMunicipalWards((prev) =>
+          prev.map((ward) =>
+            ward.id === editingId
+              ? {
+                  ...ward,
+                  name: wardName,
+                  ward_no: Number(wardNo),
+                }
+              : ward
+          )
+        );
+        setSuccessMsg("Municipal ward updated successfully!");
+      } else {
+        setMunicipalWards((prev) => [
+          ...prev,
+          {
+            id: data.ward.id,
+            ward_no: data.ward.ward_no,
+            name: data.ward.name,
+            municipality: municipalities.find(
+              (m) => m.id === selectedMunicipality.value
+            ),
+          },
+        ]);
+        setSuccessMsg("Municipal ward created successfully!");
+      }
+
       setTimeout(() => setSuccessMsg(undefined), 3000);
+      setModalOpen(false);
+      resetForm();
     } catch (err: any) {
-      setError(err.message || "Something went wrong while saving");
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDelete = async (id: number) => {
-    try {
-      const token = sessionStorage.getItem("token");
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/municipalities/delete/${id}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (!res.ok) throw new Error("Failed to delete municipality");
-      setMunicipalities((prev) => prev.filter((m) => m.id !== id));
-      setDeleteId(null);
-      setSuccessMsg("Municipality deleted successfully");
-      setTimeout(() => setSuccessMsg(undefined), 3000);
-    } catch (err: any) {
-      alert(err.message || "Something went wrong while deleting");
-    }
-  };
+  const handleEdit = (ward: MunicipalWardItem) => {
+    setEditingId(ward.id);
+    setWardNo(ward.ward_no);
+    setWardName(ward.name);
 
-  const handleEdit = async (municipality: MunicipalityItem) => {
-    setEditingId(municipality.id);
-    setMunicipalityNo(municipality.municipality_no);
-    setMunicipalityName(municipality.municipality_name);
-
-    if (municipality.district) {
-      const districtOption = {
-        value: municipality.district.id,
-        label: municipality.district.name,
-        code: municipality.district.code,
-      };
-      setSelectedDistrict(districtOption);
-      await fetchConstituencies(municipality.district.id);
-    }
-
-    if (municipality.constituency) {
-      const constituencyOption = {
-        value: municipality.constituency.id,
-        label: `${municipality.constituency.constituencyNo} - ${municipality.constituency.name}`,
-        code: municipality.constituency.code,
-      };
-      setSelectedConstituency(constituencyOption);
-    } else if (municipality.constituencyId) {
-      const constituencyOption = {
-        value: municipality.constituencyId,
-        label: `Constituency ${municipality.constituencyId}`,
-      };
-      setSelectedConstituency(constituencyOption);
+    if (ward.municipality) {
+      setSelectedMunicipality({
+        value: ward.municipality.id,
+        label: `${ward.municipality.municipalityNo} - ${ward.municipality.name}`,
+      });
     }
 
     setModalOpen(true);
@@ -371,11 +250,40 @@ export default function Municipality() {
     setModalOpen(true);
   };
 
-  // Format district option for select
-  const districtOptions = districts.map((d) => ({
-    value: d.id,
-    label: d.name,
-    code: d.code,
+  const handleDelete = async (id: number) => {
+    try {
+      setIsLoading(true);
+      const token = sessionStorage.getItem("token");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/municipal-wards/delete/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to delete municipal ward");
+      }
+
+      setMunicipalWards((prev) => prev.filter((ward) => ward.id !== id));
+      setSuccessMsg("Municipal ward deleted successfully!");
+      setTimeout(() => setSuccessMsg(undefined), 3000);
+      setDeleteId(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const municipalityOptions = municipalities.map((municipality) => ({
+    value: municipality.id,
+    label: `${municipality.municipalityNo} - ${municipality.name}`,
   }));
 
   // Animation variants
@@ -425,30 +333,39 @@ export default function Municipality() {
     exit: { opacity: 0 },
   };
 
+  const selectStyles: StylesConfig = {
+    control: (provided, state) => ({
+      ...provided,
+      borderColor: state.isFocused ? "#3B82F6" : "#D1D5DB",
+      boxShadow: state.isFocused ? "0 0 0 1px #3B82F6" : "none",
+      "&:hover": {
+        borderColor: "#3B82F6",
+      },
+    }),
+    menuPortal: (provided) => ({
+      ...provided,
+      zIndex: 9999,
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected ? "#3B82F6" : "white",
+      color: state.isSelected ? "white" : "black",
+      "&:hover": {
+        backgroundColor: state.isSelected ? "#3B82F6" : "#EBF4FF",
+      },
+    }),
+  };
+
   if (loading) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-blue-50/30"
-      >
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 text-[#061E47] animate-spin mx-auto mb-3" />
-          <p className="text-gray-600 text-sm font-medium">
-            Loading municipalities...
-          </p>
-        </div>
-      </motion.div>
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="min-h-screen bg-gradient-to-b from-gray-50 to-blue-50/30 p-4 md:p-6"
-    >
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-blue-50/30 p-4 md:p-6">
       {/* Header Section */}
       <motion.div
         initial={{ y: -10, opacity: 0 }}
@@ -468,7 +385,7 @@ export default function Municipality() {
               </motion.div>
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-                  Municipality Management
+                  Municipal Ward Management
                 </h1>
                 <p className="text-gray-600 text-xs mt-1">
                   State Election Commission, Sikkim
@@ -476,7 +393,7 @@ export default function Municipality() {
               </div>
             </div>
             <p className="text-gray-600 ml-11 hidden md:block text-sm">
-              Manage and organize Municipalities for election operations
+              Manage and organize Municipal Wards for election operations
             </p>
           </div>
 
@@ -490,11 +407,35 @@ export default function Municipality() {
               onClick={openAddModal}
             >
               <FiPlus className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5" />
-              New Municipality
+              New Municipal Ward
             </button>
           </motion.div>
         </div>
       </motion.div>
+
+      {/* Success/Error Messages */}
+      <AnimatePresence>
+        {successMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="alert alert-success mb-4"
+          >
+            {successMsg}
+          </motion.div>
+        )}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="alert alert-error mb-4"
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Search and Stats Bar */}
       <motion.div
@@ -524,10 +465,8 @@ export default function Municipality() {
                         Search:{" "}
                         {searchType === "name"
                           ? "Name"
-                          : searchType === "district"
-                          ? "District"
-                          : searchType === "constituency"
-                          ? "Constituency"
+                          : searchType === "municipality"
+                          ? "Municipality"
                           : "Number"}
                       </span>
                     </label>
@@ -548,21 +487,11 @@ export default function Municipality() {
                       <li>
                         <button
                           className={`text-xs ${
-                            searchType === "district" ? "active" : ""
+                            searchType === "municipality" ? "active" : ""
                           }`}
-                          onClick={() => setSearchType("district")}
+                          onClick={() => setSearchType("municipality")}
                         >
-                          Search by District
-                        </button>
-                      </li>
-                      <li>
-                        <button
-                          className={`text-xs ${
-                            searchType === "constituency" ? "active" : ""
-                          }`}
-                          onClick={() => setSearchType("constituency")}
-                        >
-                          Search by Constituency
+                          Search by Municipality
                         </button>
                       </li>
                       <li>
@@ -592,13 +521,13 @@ export default function Municipality() {
               <div className="badge badge-outline border-[#061E47] text-[#061E47] text-xs px-2.5 py-1.5">
                 Total:{" "}
                 <span className="font-semibold ml-0.5">
-                  {municipalities.length}
+                  {municipalWards.length}
                 </span>
               </div>
               <div className="badge badge-outline border-green-500 text-green-600 text-xs px-2.5 py-1.5">
                 Showing:{" "}
                 <span className="font-semibold ml-0.5">
-                  {filteredMunicipalities.length}
+                  {filteredMunicipalWards.length}
                 </span>
               </div>
             </div>
@@ -606,7 +535,7 @@ export default function Municipality() {
         </div>
       </motion.div>
 
-      {/* Municipality Table Card */}
+      {/* Municipal Ward Table Card */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -618,11 +547,11 @@ export default function Municipality() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div>
               <h2 className="font-semibold text-gray-900 text-base">
-                Municipalities of Sikkim
+                Municipal Wards of Sikkim
               </h2>
               <p className="text-xs text-gray-500 mt-0.5">
-                {filteredMunicipalities.length} municipalit
-                {filteredMunicipalities.length !== 1 ? "ies" : "y"} found
+                {filteredMunicipalWards.length} municipal ward
+                {filteredMunicipalWards.length !== 1 ? "s" : ""} found
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -642,17 +571,14 @@ export default function Municipality() {
                 <th className="text-gray-700 font-semibold py-3 px-4 text-xs uppercase tracking-wider">
                   <div className="flex items-center">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#061E47] mr-1.5"></div>
-                    ID
+                    Ward No
                   </div>
                 </th>
                 <th className="text-gray-700 font-semibold py-3 px-4 text-xs uppercase tracking-wider">
-                  District Name
+                  Ward Name
                 </th>
                 <th className="text-gray-700 font-semibold py-3 px-4 text-xs uppercase tracking-wider">
-                  Constituency Name
-                </th>
-                <th className="text-gray-700 font-semibold py-3 px-4 text-xs uppercase tracking-wider">
-                  Municipality Name & No
+                  Municipality
                 </th>
                 <th className="text-gray-700 font-semibold py-3 px-4 text-xs uppercase tracking-wider text-center">
                   Actions
@@ -668,7 +594,7 @@ export default function Municipality() {
                     exit={{ opacity: 0 }}
                     className="hover:bg-transparent"
                   >
-                    <td colSpan={5} className="text-center py-8 text-gray-500">
+                    <td colSpan={4} className="text-center py-8 text-gray-500">
                       {searchQuery ? (
                         <motion.div
                           initial={{ scale: 0.95, opacity: 0 }}
@@ -680,10 +606,10 @@ export default function Municipality() {
                           </div>
                           <div>
                             <p className="text-sm font-medium text-gray-700 mb-1">
-                              No matching municipalities found
+                              No matching municipal wards found
                             </p>
                             <p className="text-xs text-gray-500 mb-3">
-                              No municipalities match "{searchQuery}"
+                              No municipal wards match "{searchQuery}"
                             </p>
                             <button
                               className="btn btn-xs btn-outline"
@@ -704,17 +630,17 @@ export default function Municipality() {
                           </div>
                           <div>
                             <p className="text-sm font-medium text-gray-700 mb-1">
-                              No municipalities yet
+                              No municipal wards yet
                             </p>
                             <p className="text-xs text-gray-500 mb-3">
-                              Start by adding your first municipality
+                              Start by adding your first municipal ward
                             </p>
                             <button
                               className="btn btn-xs bg-gradient-to-r from-[#061E47] to-[#0A2B6B] text-white"
                               onClick={openAddModal}
                             >
                               <FiPlus className="w-3 h-3 mr-1" />
-                              Add First Municipality
+                              Add First Municipal Ward
                             </button>
                           </div>
                         </motion.div>
@@ -743,50 +669,31 @@ export default function Municipality() {
                             className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-[#061E47] to-[#0A2B6B] mr-2"
                           />
                           <span className="font-semibold text-sm">
-                            {item.id}
+                            {item.ward_no}
                           </span>
                         </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        {item.district ? (
-                          <div className="flex flex-col gap-1">
-                            <div className="text-sm text-gray-700">
-                              {item.district.name}
-                            </div>
-                            <div className="flex gap-1">
-                              <span className="badge badge-xs badge-outline border-gray-300 text-gray-600 font-mono">
-                                {item.district.code || "No code"}
-                              </span>
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        {item.constituency ? (
-                          <div className="flex flex-col">
-                            <span className="font-medium text-gray-800 text-sm">
-                              {item.constituency.name}
-                            </span>
-                            <span className="text-xs text-gray-500 mt-0.5">
-                              Constituency No:{" "}
-                              {item.constituency.constituencyNo}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <span className="font-medium text-gray-800 text-sm">
-                            {item.municipality_name}
-                          </span>
-                          <span className="text-xs text-gray-500 mt-0.5">
-                            Municipality No: {item.municipality_no}
+                            {item.name}
                           </span>
                         </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        {item.municipality ? (
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-800 text-sm">
+                              {item.municipality.name}
+                            </span>
+                            <span className="text-xs text-gray-500 mt-0.5">
+                              Municipality No:{" "}
+                              {item.municipality.municipalityNo}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex justify-center gap-1.5">
@@ -799,8 +706,7 @@ export default function Municipality() {
                             className="btn btn-xs btn-outline border-blue-500 text-blue-600 hover:bg-blue-50 hover:border-blue-600 hover:text-blue-700 px-2"
                             onClick={() => handleEdit(item)}
                           >
-                            <FiEdit className="w-3 h-3 mr-1" />
-                            Edit
+                            <FiEdit className="w-3 h-3" />
                           </motion.button>
                           <motion.button
                             whileHover={{
@@ -811,8 +717,7 @@ export default function Municipality() {
                             className="btn btn-xs btn-outline border-red-500 text-red-600 hover:bg-red-50 hover:border-red-600 hover:text-red-700 px-2"
                             onClick={() => setDeleteId(item.id)}
                           >
-                            <FiTrash className="w-3 h-3 mr-1" />
-                            Delete
+                            <FiTrash className="w-3 h-3" />
                           </motion.button>
                         </div>
                       </td>
@@ -827,25 +732,28 @@ export default function Municipality() {
         {/* Pagination */}
         {totalPages > 1 && (
           <motion.div
-            initial={{ opacity: 0, y: 5 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="border-t border-gray-200 px-4 py-3 bg-gray-50/30"
+            transition={{ delay: 0.2 }}
+            className="px-4 py-3 bg-gray-50 border-t border-gray-200"
           >
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="text-xs text-gray-500 font-medium">
-                Showing{" "}
-                <span className="font-semibold">{indexOfFirstItem + 1}</span> to{" "}
-                <span className="font-semibold">
-                  {Math.min(indexOfLastItem, sortedMunicipalities.length)}
-                </span>{" "}
-                of{" "}
-                <span className="font-semibold">
-                  {sortedMunicipalities.length}
-                </span>{" "}
-                municipalities
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs text-gray-600">
+                <span>Showing</span>
+                <span className="font-medium text-gray-900">
+                  {Math.min(
+                    currentPage * itemsPerPage,
+                    filteredMunicipalWards.length
+                  )}
+                </span>
+                <span>of</span>
+                <span className="font-medium text-gray-900">
+                  {filteredMunicipalWards.length}
+                </span>
+                <span>municipal wards</span>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <button
                   className={`btn btn-xs btn-outline rounded ${
                     currentPage === 1 ? "btn-disabled opacity-50" : ""
@@ -899,71 +807,7 @@ export default function Municipality() {
         )}
       </motion.div>
 
-      {/* Success/Error Toasts */}
-      <AnimatePresence>
-        {successMsg && (
-          <motion.div
-            key="success-toast"
-            initial={{ opacity: 0, y: 20, x: "-50%" }}
-            animate={{ opacity: 1, y: 0, x: "-50%" }}
-            exit={{ opacity: 0, y: 20, x: "-50%" }}
-            className="fixed left-1/2 bottom-4 z-50 transform -translate-x-1/2 w-full max-w-xs px-4"
-          >
-            <div className="alert alert-success shadow-sm backdrop-blur-sm bg-white/95 py-2">
-              <div className="flex items-center gap-2">
-                <div className="p-0.5 bg-green-100 rounded-full">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="stroke-green-600 flex-shrink-0 h-3.5 w-3.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <span className="text-xs font-medium">{successMsg}</span>
-              </div>
-            </div>
-          </motion.div>
-        )}
-        {error && (
-          <motion.div
-            key="error-toast"
-            initial={{ opacity: 0, y: 20, x: "-50%" }}
-            animate={{ opacity: 1, y: 0, x: "-50%" }}
-            exit={{ opacity: 0, y: 20, x: "-50%" }}
-            className="fixed left-1/2 bottom-4 z-50 transform -translate-x-1/2 w-full max-w-xs px-4"
-          >
-            <div className="alert alert-error shadow-sm backdrop-blur-sm bg-white/95 py-2">
-              <div className="flex items-center gap-2">
-                <div className="p-0.5 bg-red-100 rounded-full">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="stroke-red-600 flex-shrink-0 h-3.5 w-3.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <span className="text-xs font-medium">{error}</span>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Add/Edit Municipality Modal */}
+      {/* Create/Edit Modal */}
       <AnimatePresence>
         {modalOpen && (
           <div className="modal modal-open">
@@ -996,12 +840,14 @@ export default function Municipality() {
                     </div>
                     <div>
                       <h3 className="font-bold text-base text-white">
-                        {editingId ? "Edit Municipality" : "New Municipality"}
+                        {editingId
+                          ? "Edit Municipal Ward"
+                          : "New Municipal Ward"}
                       </h3>
                       <p className="text-white/80 text-xs">
                         {editingId
-                          ? "Update municipality information"
-                          : "Create a new Municipality"}
+                          ? "Update municipal ward information"
+                          : "Create a new Municipal Ward"}
                       </p>
                     </div>
                   </div>
@@ -1021,96 +867,11 @@ export default function Municipality() {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    handleSave();
+                    handleSubmit(e);
                   }}
                   className="space-y-4"
                 >
-                  {/* Select District */}
-                  <div className="form-control">
-                    <label className="label py-1">
-                      <span className="label-text font-medium text-gray-700 text-sm">
-                        District Name{" "}
-                        <span className="text-red-500 ml-0.5">*</span>
-                      </span>
-                    </label>
-                    <Select
-                      options={districtOptions}
-                      value={selectedDistrict}
-                      onChange={(val) => {
-                        setSelectedDistrict(val);
-                        if (val) {
-                          fetchConstituencies(val.value);
-                          setSelectedConstituency(null);
-                        } else {
-                          setConstituencies([]);
-                          setSelectedConstituency(null);
-                        }
-                      }}
-                      styles={selectStyles}
-                      placeholder="Select district..."
-                      menuPortalTarget={document.body}
-                      menuPosition="fixed"
-                      menuPlacement="auto"
-                      isClearable
-                    />
-                  </div>
-
-                  {/* Select Constituency */}
-                  <div className="form-control">
-                    <label className="label py-1">
-                      <span className="label-text font-medium text-gray-700 text-sm">
-                        Constituency Name{" "}
-                        <span className="text-red-500 ml-0.5">*</span>
-                      </span>
-                    </label>
-                    <Select
-                      options={constituencies.map((c) => ({
-                        value: c.id,
-                        label: `${c.constituencyNo} - ${c.name}`,
-                      }))}
-                      value={selectedConstituency}
-                      onChange={setSelectedConstituency}
-                      styles={selectStyles}
-                      placeholder={
-                        selectedDistrict
-                          ? "Select constituency..."
-                          : "First select a district"
-                      }
-                      isDisabled={!selectedDistrict}
-                      menuPortalTarget={document.body}
-                      menuPosition="fixed"
-                      menuPlacement="auto"
-                      isClearable
-                    />
-                    {selectedDistrict && constituencies.length === 0 && (
-                      <span className="label-text-alt text-orange-600 text-xs">
-                        No constituencies available for this district
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Municipality Number */}
-                  <div className="form-control">
-                    <label className="label py-1">
-                      <span className="label-text font-medium text-gray-700 text-sm">
-                        Municipality Number{" "}
-                        <span className="text-red-500 ml-0.5">*</span>
-                      </span>
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="Enter municipality number"
-                      className="input input-bordered w-full focus:border-[#061E47] focus:ring-1 focus:ring-[#061E47]/20 rounded h-9 text-sm"
-                      value={municipalityNo}
-                      onChange={(e) =>
-                        setMunicipalityNo(Number(e.target.value))
-                      }
-                      required
-                      min="1"
-                    />
-                  </div>
-
-                  {/* Municipality Name */}
+                  {/* Select Municipality */}
                   <div className="form-control">
                     <label className="label py-1">
                       <span className="label-text font-medium text-gray-700 text-sm">
@@ -1118,12 +879,58 @@ export default function Municipality() {
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
                     </label>
+                    <Select
+                      options={municipalityOptions}
+                      value={selectedMunicipality}
+                      onChange={(val) => {
+                        setSelectedMunicipality(
+                          val as { value: number; label: string } | null
+                        );
+                      }}
+                      styles={selectStyles}
+                      placeholder="Select municipality..."
+                      menuPortalTarget={document.body}
+                      menuPosition="fixed"
+                      menuPlacement="auto"
+                      isClearable
+                      isDisabled={!!editingId}
+                    />
+                  </div>
+
+                  {/* Ward Number */}
+                  <div className="form-control">
+                    <label className="label py-1">
+                      <span className="label-text font-medium text-gray-700 text-sm">
+                        Ward Number{" "}
+                        <span className="text-red-500 ml-0.5">*</span>
+                      </span>
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Enter ward number"
+                      className="input input-bordered w-full focus:border-[#061E47] focus:ring-1 focus:ring-[#061E47]/20 rounded h-9 text-sm"
+                      value={wardNo}
+                      onChange={(e) =>
+                        setWardNo(e.target.value ? Number(e.target.value) : "")
+                      }
+                      required
+                      min="1"
+                    />
+                  </div>
+
+                  {/* Ward Name */}
+                  <div className="form-control">
+                    <label className="label py-1">
+                      <span className="label-text font-medium text-gray-700 text-sm">
+                        Ward Name <span className="text-red-500 ml-0.5">*</span>
+                      </span>
+                    </label>
                     <input
                       type="text"
-                      placeholder="Enter municipality name"
+                      placeholder="Enter ward name"
                       className="input input-bordered w-full focus:border-[#061E47] focus:ring-1 focus:ring-[#061E47]/20 rounded h-9 text-sm"
-                      value={municipalityName}
-                      onChange={(e) => setMunicipalityName(e.target.value)}
+                      value={wardName}
+                      onChange={(e) => setWardName(e.target.value)}
                       required
                     />
                   </div>
@@ -1146,36 +953,30 @@ export default function Municipality() {
                       type="submit"
                       whileHover={
                         !isLoading &&
-                        municipalityName.trim() &&
-                        municipalityNo &&
-                        selectedConstituency &&
-                        selectedDistrict
+                        wardName.trim() &&
+                        wardNo &&
+                        selectedMunicipality
                           ? { scale: 1.01 }
                           : {}
                       }
                       whileTap={
                         !isLoading &&
-                        municipalityName.trim() &&
-                        municipalityNo &&
-                        selectedConstituency &&
-                        selectedDistrict
+                        wardName.trim() &&
+                        wardNo &&
+                        selectedMunicipality
                           ? { scale: 0.99 }
                           : {}
                       }
                       className={`btn btn-sm flex-1 order-1 sm:order-2 rounded font-medium text-xs ${
-                        !municipalityName.trim() ||
-                        !municipalityNo ||
-                        !selectedConstituency ||
-                        !selectedDistrict
+                        !wardName.trim() || !wardNo || !selectedMunicipality
                           ? "bg-gradient-to-r from-gray-300 to-gray-400 text-gray-500 border-0 cursor-not-allowed"
                           : "bg-gradient-to-r from-[#061E47] to-[#0A2B6B] text-white border-0 hover:from-[#0A2B6B] hover:to-[#061E47]"
                       }`}
                       disabled={
                         isLoading ||
-                        !municipalityName.trim() ||
-                        !municipalityNo ||
-                        !selectedConstituency ||
-                        !selectedDistrict
+                        !wardName.trim() ||
+                        !wardNo ||
+                        !selectedMunicipality
                       }
                     >
                       {isLoading ? (
@@ -1187,8 +988,8 @@ export default function Municipality() {
                         <>
                           <Save className="w-3.5 h-3.5 mr-1.5" />
                           {editingId
-                            ? "Update Municipality"
-                            : "Save Municipality"}
+                            ? "Update Municipal Ward"
+                            : "Save Municipal Ward"}
                         </>
                       )}
                     </motion.button>
@@ -1217,7 +1018,7 @@ export default function Municipality() {
                     <FiTrash className="w-3.5 h-3.5 text-white" />
                   </div>
                   <h3 className="font-bold text-base text-white">
-                    Delete Municipality
+                    Delete Municipal Ward
                   </h3>
                 </div>
               </div>
@@ -1236,7 +1037,7 @@ export default function Municipality() {
                     Confirm Delete
                   </h4>
                   <p className="text-gray-600 mb-4 text-xs leading-relaxed">
-                    Are you sure you want to delete this municipality? This
+                    Are you sure you want to delete this municipal ward? This
                     action cannot be undone.
                   </p>
 
@@ -1270,10 +1071,10 @@ export default function Municipality() {
         className="mt-6 pt-4 border-t border-gray-200"
       >
         <p className="text-center text-xs text-gray-500">
-          © 2026 State Election Commission, Sikkim • Municipality Management
+          © 2026 State Election Commission, Sikkim • Municipal Ward Management
           System v1.0
         </p>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }

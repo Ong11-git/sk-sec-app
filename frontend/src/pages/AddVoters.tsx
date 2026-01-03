@@ -445,93 +445,95 @@ export default function AddVoters() {
   };
 
   const handleEditVoter = async (voter: any) => {
-    setSelectedVoter(voter);
-    setEpicNo(voter.epicNo || "");
-    setStateEpicNo(voter.stateEpicNo || "");
-    setName(voter.name || "");
-    setRelationType(voter.relationType || "");
-    setRelationName(voter.relationName || "");
-    setAge(voter.age || "");
-    setGender(voter.gender || "");
-    setCasteCategory(voter.casteCategory || "");
-    setCountry(voter.country || "");
-    setState(voter.state || "");
+    try {
+      setSelectedVoter(voter);
+      setEpicNo(voter.epicNo || "");
+      setStateEpicNo(voter.stateEpicNo || "");
+      setName(voter.name || "");
+      setRelationType(voter.relationType || "");
+      setRelationName(voter.relationName || "");
+      setAge(voter.age || "");
+      setGender(voter.gender || "");
+      setCasteCategory(voter.casteCategory || "");
+      setCountry(voter.country || "");
+      setState(voter.state || "");
 
-    // Reset all location selections
-    setSelectedDistrict(null);
-    setSelectedConstituency(null);
-    setSelectedTc(null);
-    setSelectedGpu(null);
-    setSelectedWard(null);
-    setSelectedMunicipality(null);
-    setSelectedMunicipalWard(null);
-    setAreaType("Rural");
+      // Reset all location selections
+      setSelectedDistrict(null);
+      setSelectedConstituency(null);
+      setSelectedTc(null);
+      setSelectedGpu(null);
+      setSelectedWard(null);
+      setSelectedMunicipality(null);
+      setSelectedMunicipalWard(null);
+      setAreaType("Rural");
 
-    // Set district if exists
-    if (voter.district) {
-      const districtOption = {
-        value: voter.district.id,
-        label: voter.district.name,
-      };
-      setSelectedDistrict(districtOption);
+      // Set district if exists
+      if (voter.district) {
+        const districtOption = {
+          value: voter.district.id,
+          label: voter.district.name,
+        };
+        setSelectedDistrict(districtOption);
 
-      // Fetch constituencies for this district
-      const consts = await fetchConstituencies(voter.district.id);
+        // Fetch constituencies for this district
+        const consts = await fetchConstituencies(voter.district.id);
 
-      // Set constituency if exists
-      if (voter.constituency) {
-        const foundConst = consts.find(
-          (c: any) => c.id === voter.constituency.id
-        );
-        if (foundConst) {
-          const constituencyOption = {
-            value: foundConst.id,
-            label: `${foundConst.constituencyNo} - ${foundConst.name}`,
-          };
-          setSelectedConstituency(constituencyOption);
+        // Set constituency if exists
+        if (voter.constituency) {
+          const foundConst = consts.find(
+            (c: any) => c.id === voter.constituency.id
+          );
+          if (foundConst) {
+            const constituencyOption = {
+              value: foundConst.id,
+              label: `${foundConst.constituencyNo} - ${foundConst.name}`,
+            };
+            setSelectedConstituency(constituencyOption);
 
-          // Fetch TCs for this constituency
-          const tcList = await fetchTcs(foundConst.id);
+            // Fetch TCs for this constituency
+            const tcList = await fetchTcs(foundConst.id);
 
-          // Set TC if exists
-          if (voter.tc) {
-            const foundTc = tcList.find((t: any) => t.id === voter.tc.id);
-            if (foundTc) {
-              const tcOption = {
-                value: foundTc.id,
-                label: `${foundTc.tc_no} - ${foundTc.tc_name}`,
-              };
-              setSelectedTc(tcOption);
+            // Set TC if exists
+            if (voter.tc) {
+              const foundTc = tcList.find((t: any) => t.id === voter.tc.id);
+              if (foundTc) {
+                const tcOption = {
+                  value: foundTc.id,
+                  label: `${foundTc.tc_no} - ${foundTc.tc_name}`,
+                };
+                setSelectedTc(tcOption);
 
-              // Fetch GPUs for this TC
-              const gpuList = await fetchGpus(foundTc.id);
+                // Fetch GPUs for this TC
+                const gpuList = await fetchGpus(foundTc.id);
 
-              // Set GPU if exists
-              if (voter.gpu) {
-                const foundGpu = gpuList.find(
-                  (g: any) => g.id === voter.gpu.id
-                );
-                if (foundGpu) {
-                  const gpuOption = {
-                    value: foundGpu.id,
-                    label: `${foundGpu.gpu_no} - ${foundGpu.gpu_name}`,
-                  };
-                  setSelectedGpu(gpuOption);
+                // Set GPU if exists
+                if (voter.gpu) {
+                  const foundGpu = gpuList.find(
+                    (g: any) => g.id === voter.gpu.id
+                  );
+                  if (foundGpu) {
+                    const gpuOption = {
+                      value: foundGpu.id,
+                      label: `${foundGpu.gpu_no} - ${foundGpu.gpu_name}`,
+                    };
+                    setSelectedGpu(gpuOption);
 
-                  // Fetch Wards for this GPU
-                  const wardList = await fetchWards(foundGpu.id);
+                    // Fetch Wards for this GPU
+                    const wardList = await fetchWards(foundGpu.id);
 
-                  // Set Ward if exists
-                  if (voter.ward) {
-                    const foundWard = wardList.find(
-                      (w: any) => w.id === voter.ward.id
-                    );
-                    if (foundWard) {
-                      const wardOption = {
-                        value: foundWard.id,
-                        label: `${foundWard.ward_no} - ${foundWard.ward_name}`,
-                      };
-                      setSelectedWard(wardOption);
+                    // Set Ward if exists
+                    if (voter.ward) {
+                      const foundWard = wardList.find(
+                        (w: any) => w.id === voter.ward.id
+                      );
+                      if (foundWard) {
+                        const wardOption = {
+                          value: foundWard.id,
+                          label: `${foundWard.ward_no} - ${foundWard.ward_name}`,
+                        };
+                        setSelectedWard(wardOption);
+                      }
                     }
                   }
                 }
@@ -540,50 +542,53 @@ export default function AddVoters() {
           }
         }
       }
-    }
 
-    // Check for urban area
-    if (voter.municipality || voter.municipalWard) {
-      setAreaType("Urban");
+      // Check for urban area
+      if (voter.municipality || voter.municipalWard) {
+        setAreaType("Urban");
 
-      // Fetch all municipalities
-      await fetchMunicipalities();
+        // Fetch all municipalities
+        await fetchMunicipalities();
 
-      // Set municipality if exists
-      if (voter.municipality) {
-        const municipalityOption = {
-          value: voter.municipality.id,
-          label: `${voter.municipality.municipalityNo} - ${voter.municipality.name}`,
-        };
-        setSelectedMunicipality(municipalityOption);
+        // Set municipality if exists
+        if (voter.municipality) {
+          const municipalityOption = {
+            value: voter.municipality.id,
+            label: `${voter.municipality.municipalityNo} - ${voter.municipality.name}`,
+          };
+          setSelectedMunicipality(municipalityOption);
 
-        // Fetch municipal wards
-        const mWards = await fetchMunicipalWards(voter.municipality.id);
+          // Fetch municipal wards
+          const mWards = await fetchMunicipalWards(voter.municipality.id);
 
-        // Set municipal ward if exists
-        if (voter.municipalWard) {
-          const foundMWard = mWards.find(
-            (mw: any) => mw.id === voter.municipalWard.id
-          );
-          if (foundMWard) {
-            const mWardOption = {
-              value: foundMWard.id,
-              label: `${foundMWard.ward_no} - ${
-                foundMWard.name || foundMWard.ward_name
-              }`,
-            };
-            setSelectedMunicipalWard(mWardOption);
+          // Set municipal ward if exists
+          if (voter.municipalWard) {
+            const foundMWard = mWards.find(
+              (mw: any) => mw.id === voter.municipalWard.id
+            );
+            if (foundMWard) {
+              const mWardOption = {
+                value: foundMWard.id,
+                label: `${foundMWard.ward_no} - ${
+                  foundMWard.name || foundMWard.ward_name
+                }`,
+              };
+              setSelectedMunicipalWard(mWardOption);
+            }
           }
         }
       }
-    }
 
-    // Set photo preview for existing voter photo
-    if (voter.photo) {
-      setPhotoPreview(voter.photo);
-    }
+      // Set photo preview for existing voter photo
+      if (voter.photo) {
+        setPhotoPreview(voter.photo);
+      }
 
-    setEditModalOpen(true);
+      setEditModalOpen(true);
+    } catch (err: any) {
+      console.error("Error in handleEditVoter:", err);
+      setError(err.message || "Failed to load voter data for editing");
+    }
   };
 
   const handleSaveEdit = async () => {
@@ -691,6 +696,48 @@ export default function AddVoters() {
       setSuccessMsg("Voter deleted successfully!");
       setTimeout(() => setSuccessMsg(undefined), 3000);
       setDeleteModalOpen(false);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateStateEpic = async (voter: any) => {
+    try {
+      setIsLoading(true);
+      const token = sessionStorage.getItem("token");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/voters/${
+          voter.id
+        }/generate-state-epic`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(
+          errorData.error || "Failed to generate state epic number"
+        );
+      }
+
+      const data = await res.json();
+
+      // Update the voter in local state
+      setVoters((prevVoters) =>
+        prevVoters.map((v) =>
+          v.id === voter.id ? { ...v, stateEpicNo: data.stateEpicNo } : v
+        )
+      );
+
+      setSuccessMsg("State EPIC number generated successfully!");
+      setTimeout(() => setSuccessMsg(undefined), 3000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -1498,6 +1545,15 @@ export default function AddVoters() {
                           >
                             <CreditCard className="w-3 h-3" />
                           </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="btn btn-xs btn-outline border-orange-500 text-orange-600 hover:bg-orange-50 px-2"
+                            onClick={() => handleGenerateStateEpic(voter)}
+                            title="Generate State Epic No"
+                          >
+                            <FileText className="w-3 h-3" />
+                          </motion.button>
                         </div>
                       </td>
                     </motion.tr>
@@ -1826,6 +1882,9 @@ export default function AddVoters() {
                           value={stateEpicNo}
                           onChange={(e) => setStateEpicNo(e.target.value)}
                         />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Leave empty to generate automatically
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -2517,6 +2576,9 @@ export default function AddVoters() {
                             value={stateEpicNo}
                             onChange={(e) => setStateEpicNo(e.target.value)}
                           />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Leave empty to generate automatically
+                          </p>
                         </div>
                       </div>
                     </div>

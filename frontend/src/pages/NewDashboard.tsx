@@ -236,9 +236,7 @@ const NewDashboard: React.FC<DashboardProps> = ({
 
   // Fetch analytics when filters change
   useEffect(() => {
-    if (Object.values(filters).some((v) => v)) {
-      fetchAnalytics();
-    }
+    fetchAnalytics();
   }, [fetchAnalytics]);
 
   const clearFilters = () => {

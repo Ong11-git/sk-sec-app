@@ -12,6 +12,7 @@ const VotersTable: React.FC = () => {
   // filter state
   const [filters, setFilters] = useState({
     epicNo: "",
+    stateEpicNo: "",
     name: "",
     relationType: "",
     relationName: "",
@@ -90,6 +91,7 @@ const VotersTable: React.FC = () => {
   const resetFilters = () => {
     setFilters({
       epicNo: "",
+      stateEpicNo: "",
       name: "",
       relationType: "",
       relationName: "",
@@ -158,6 +160,7 @@ const VotersTable: React.FC = () => {
           <thead className="bg-base-200 text-xs">
             <tr>
               <th className="px-3 py-2">Epic No</th>
+              <th className="px-3 py-2">State Epic No</th>
               <th className="px-3 py-2">Name</th>
               <th className="px-3 py-2">Relation Type</th>
               <th className="px-3 py-2">Relation Name</th>
@@ -181,6 +184,11 @@ const VotersTable: React.FC = () => {
                 <td className="px-3 py-2 ">
                   <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                     {voter.epicNo}
+                  </span>
+                </td>
+                <td className="px-3 py-2">
+                  <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                    {voter.stateEpicNo || "—"}
                   </span>
                 </td>
                 <td className="px-3 py-2">{voter.name}</td>

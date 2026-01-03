@@ -17,6 +17,7 @@ import AddDistrict from "./pages/AddDistrict";
 import AddGpu from "./pages/AddGpu";
 import AddWard from "./pages/AddWard";
 import Municipality from "./pages/Municipality"; // Add this import
+import MunicipalWard from "./pages/MunicipalWard";
 
 // Main App Component
 function AppContent() {
@@ -30,7 +31,8 @@ function AppContent() {
     | "district"
     | "gpu"
     | "ward"
-    | "municipality" // Add municipality to the type
+    | "municipality"
+    | "municipalWard"
   >("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -120,6 +122,8 @@ function AppContent() {
         return <AddGpu />;
       case "municipality": // Add municipality case
         return <Municipality />;
+      case "municipalWard":
+        return <MunicipalWard />;
       case "ward":
         return <AddWard />;
       case "voters":

@@ -25,7 +25,8 @@ type TabKey =
   | "district"
   | "gpu"
   | "ward"
-  | "municipality";
+  | "municipality"
+  | "municipalWard";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -73,8 +74,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: Layers,
     },
     { key: "gpu" as TabKey, label: "GPU", icon: Home },
-    { key: "municipality" as TabKey, label: "Municipality", icon: Building2 },
     { key: "ward" as TabKey, label: "Ward", icon: Home },
+    { key: "municipality" as TabKey, label: "Municipality", icon: Building2 },
+    {
+      key: "municipalWard" as TabKey,
+      label: "Municipal Ward",
+      icon: Building2,
+    },
     // { key: "voters" as TabKey, label: "Voters List", icon: Users },
     { key: "votersFilters" as TabKey, label: "Voters Filters", icon: Filter },
     { key: "addVoters" as TabKey, label: "Add Voters", icon: UserPlus },
@@ -86,6 +92,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     constituency: "text-purple-500",
     territorialConstituency: "text-amber-500",
     municipality: "text-cyan-500",
+    municipalWard: "text-teal-500",
     voters: "text-teal-500",
     votersFilters: "text-pink-500",
     addVoters: "text-red-500",
