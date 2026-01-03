@@ -1,5 +1,5 @@
 import express from "express";
-import { getDashboardAnalytics } from "./analyticsService.js";
+import { getDashboardAnalytics, getFilterOptions } from "./analyticsService.js";
 import {
   authenticateToken,
   authorizeAdminOrUser,
@@ -7,6 +7,32 @@ import {
 } from "../middlewares/authMiddleware.js";
 
 const analyticsRouter = express.Router();
+
+/**
+ * GET /analytics/filters
+ * Get filter options for cascading dropdowns
+ */
+analyticsRouter.get(
+  "/filters",
+  authenticateToken,
+  authorizeAdminOrUser,
+  async (req, res) => {
+    try {
+      const options = await getFilterOptions(req.query);
+
+      res.json({
+        success: true,
+        data: options,
+      });
+    } catch (error) {
+      console.error("Filter options error:", error.message);
+      res.status(500).json({
+        success: false,
+        error: "Failed to fetch filter options",
+      });
+    }
+  }
+);
 
 /**
  * GET /analytics/dashboard
@@ -33,7 +59,6 @@ const analyticsRouter = express.Router();
 //     }
 //   }
 // );
-
 
 analyticsRouter.get(
   "/dashboard",

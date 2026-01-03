@@ -67,10 +67,7 @@ const VotersTable: React.FC = () => {
     return Object.entries(filters).every(([key, value]) => {
       if (!value) return true;
       const fieldValue = (voter as any)[key];
-      return fieldValue
-        ?.toString()
-        .toLowerCase()
-        .includes(value.toLowerCase());
+      return fieldValue?.toString().toLowerCase().includes(value.toLowerCase());
     });
   });
 
@@ -137,7 +134,10 @@ const VotersTable: React.FC = () => {
                 />
               ))}
               <div className="col-span-2 flex justify-end gap-2 mt-2">
-                <button onClick={resetFilters} className="btn btn-xs btn-outline">
+                <button
+                  onClick={resetFilters}
+                  className="btn btn-xs btn-outline"
+                >
                   Reset
                 </button>
                 <button
@@ -157,9 +157,7 @@ const VotersTable: React.FC = () => {
         <table className="w-full text-xs">
           <thead className="bg-base-200 text-xs">
             <tr>
-              <th className="px-3 py-2">
-                Epic No
-              </th>
+              <th className="px-3 py-2">Epic No</th>
               <th className="px-3 py-2">Name</th>
               <th className="px-3 py-2">Relation Type</th>
               <th className="px-3 py-2">Relation Name</th>
@@ -182,14 +180,14 @@ const VotersTable: React.FC = () => {
               <tr key={voter.id} className="hover:bg-base-200/50">
                 <td className="px-3 py-2 ">
                   <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                   {voter.epicNo}
+                    {voter.epicNo}
                   </span>
                 </td>
                 <td className="px-3 py-2">{voter.name}</td>
                 <td className="px-3 py-2">
                   <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                     {voter.relationType}
-                   </span>
+                  </span>
                 </td>
                 <td className="px-3 py-2">{voter.relationName}</td>
                 <td className="px-3 py-2">{voter.age}</td>
@@ -207,22 +205,22 @@ const VotersTable: React.FC = () => {
                 <td className="px-3 py-2">{voter.country}</td>
                 <td className="px-3 py-2">{voter.gpuName}</td>
                 <td className="px-3 py-2">
-                   <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {voter.gpuNo}
-                   </span>
+                  <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                    {voter.gpuNo}
+                  </span>
                 </td>
                 <td className="px-3 py-2">{voter.state}</td>
                 <td className="px-3 py-2">{voter.tcName}</td>
                 <td className="px-3 py-2">
                   <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {voter.tcNo}
-                   </span>
+                    {voter.tcNo}
+                  </span>
                 </td>
                 <td className="px-3 py-2">{voter.wardName}</td>
                 <td className="px-3 py-2">
-                   <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                         {voter.wardNo}
-                   </span>
+                  <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                    {voter.wardNo}
+                  </span>
                 </td>
                 <td className="px-3 py-2">{voter.district.name}</td>
                 <td className="px-3 py-2">{voter.constituency.name}</td>

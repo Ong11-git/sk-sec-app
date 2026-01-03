@@ -19,7 +19,7 @@ function resolveEffectiveFilter(query) {
       return { key, value: Number(query[key]) };
     }
   }
-  return null; 
+  return null;
 }
 
 function buildVoterWhere(effectiveFilter) {
@@ -33,6 +33,91 @@ function buildVoterWhere(effectiveFilter) {
     ...baseWhere,
     [effectiveFilter.key]: effectiveFilter.value,
   };
+}
+
+/**
+ * Get filter options for cascading dropdowns
+ */
+export async function getFilterOptions(filters = {}) {
+  try {
+    const options = {};
+
+    // Always get districts
+    options.districts = await prisma.district.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    });
+
+    // If district is selected, get constituencies
+    if (filters.districtId) {
+      const district = await prisma.district.findUnique({
+        where: { id: Number(filters.districtId) },
+        include: {
+          constituencies: {
+            include: {
+              constituency: true,
+            },
+          },
+        },
+      });
+
+      options.constituencies =
+        district?.constituencies.map((dc) => ({
+          id: dc.constituency.id,
+          name: dc.constituency.name,
+          constituencyNo: dc.constituency.constituencyNo,
+        })) || [];
+    }
+
+    // If constituency is selected, get municipalities and TCs
+    if (filters.constituencyId) {
+      // Get municipalities in this constituency
+      options.municipalities = await prisma.municipality.findMany({
+        where: { constituencyId: Number(filters.constituencyId) },
+        select: { id: true, name: true, municipalityNo: true },
+        orderBy: { name: "asc" },
+      });
+
+      // Get TCs in this constituency
+      options.tcs = await prisma.tc.findMany({
+        where: { constituencyId: Number(filters.constituencyId) },
+        select: { id: true, tc_name: true, tc_no: true },
+        orderBy: { tc_name: "asc" },
+      });
+    }
+
+    // If municipality is selected, get municipal wards
+    if (filters.municipalityId) {
+      options.municipalWards = await prisma.municipalWard.findMany({
+        where: { municipalityId: Number(filters.municipalityId) },
+        select: { id: true, name: true, ward_no: true },
+        orderBy: { ward_no: "asc" },
+      });
+    }
+
+    // If TC is selected, get GPUs
+    if (filters.tcId) {
+      options.gpus = await prisma.gpu.findMany({
+        where: { tcId: Number(filters.tcId) },
+        select: { id: true, gpu_name: true, gpu_no: true },
+        orderBy: { gpu_name: "asc" },
+      });
+    }
+
+    // If GPU is selected, get wards
+    if (filters.gpuId) {
+      options.wards = await prisma.ward.findMany({
+        where: { gpuId: Number(filters.gpuId) },
+        select: { id: true, ward_name: true, ward_no: true },
+        orderBy: { ward_no: "asc" },
+      });
+    }
+
+    return options;
+  } catch (error) {
+    console.error("Filter options error:", error.message);
+    throw new Error("Failed to fetch filter options");
+  }
 }
 
 export async function getDashboardAnalytics(filters = {}) {
@@ -137,10 +222,12 @@ async function getDistrictWiseVoterCount(where) {
     _count: { id: true },
   });
 
-  return districts.map((d) => ({
-    district: d.name,
-    voters: grouped.find((g) => g.districtId === d.id)?._count.id ?? 0,
-  }));
+  return districts
+    .map((d) => ({
+      district: d.name,
+      voters: grouped.find((g) => g.districtId === d.id)?._count.id ?? 0,
+    }))
+    .sort((a, b) => b.voters - a.voters);
 }
 
 // async function getAgeGroupDistribution() {
@@ -261,11 +348,13 @@ async function getConstituencyWiseVoterCount(where) {
     grouped.map((g) => [g.constituencyId, g._count.id])
   );
 
-  return constituencies.map((c) => ({
-    constituencyId: c.id,
-    constituency: c.name,
-    voters: lookup[c.id] ?? 0,
-  }));
+  return constituencies
+    .map((c) => ({
+      constituencyId: c.id,
+      constituency: c.name,
+      voters: lookup[c.id] ?? 0,
+    }))
+    .sort((a, b) => b.voters - a.voters);
 }
 
 // async function getVoterLastNames() {
@@ -320,8 +409,10 @@ async function getVoterLastNames(where) {
     counts[lastName] = (counts[lastName] || 0) + 1;
   }
 
-  return Object.entries(counts).map(([lastName, count]) => ({
-    lastName,
-    count,
-  }));
+  return Object.entries(counts)
+    .map(([lastName, count]) => ({
+      lastName,
+      count,
+    }))
+    .sort((a, b) => b.count - a.count);
 }
