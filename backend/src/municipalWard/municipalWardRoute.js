@@ -85,7 +85,7 @@ municipalWardRouter.put(
  * GET /municipal-wards/municipality/:municipalityId
  */
 municipalWardRouter.get(
-  "/municipality/:municipalityId",
+  "/by-municipality/:municipalityId",
   authenticateToken,
   async (req, res) => {
     try {

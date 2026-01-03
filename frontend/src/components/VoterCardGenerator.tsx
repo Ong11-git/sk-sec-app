@@ -143,7 +143,7 @@ export default function VoterCardGenerator({
         className="modal-box max-w-4xl p-0 overflow-hidden bg-white shadow-2xl"
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#061E47] to-[#0A2B6B] px-6 py-4 print:hidden">
+        <div className="bg-gradient-to-r from-[#061E47] to-[#0A2B6B] px-6 py-2 print:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white/10 rounded-lg">
@@ -168,16 +168,17 @@ export default function VoterCardGenerator({
         </div>
 
         {/* Card Preview Area */}
-        <div className="p-6 bg-gradient-to-b from-gray-100 to-gray-200">
+        <div className="p-0 bg-gradient-to-b from-gray-100  to-gray-200 ">
           {/* Toggle Button */}
-          <div className="flex justify-center mb-6 print:hidden">
+          <div className="flex justify-center mb-3 print:hidden">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowBack(!showBack)}
-              className="btn btn-sm bg-white shadow-md hover:shadow-lg border-0 gap-2"
+              className="btn btn-sm mt-2 bg-white shadow-md hover:shadow-lg 
+               border-0 gap-2"
             >
-              <RotateCw className="w-4 h-4" />
+              <RotateCw className="w-4 h-4 " />
               {showBack ? "Show Front Side" : "Show Back Side"}
             </motion.button>
           </div>
@@ -590,22 +591,22 @@ export default function VoterCardGenerator({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap justify-center gap-3 mt-6 print:hidden">
+          <div className="flex flex-wrap justify-center gap-3 mt-5 print:hidden">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handlePrint}
-              className="btn btn-sm bg-gray-600 hover:bg-gray-700 text-white border-0 gap-2"
+              className=" mb-2 btn btn-sm bg-gray-600 hover:bg-gray-700 text-white border-0  gap-2"
             >
-              <Printer className="w-4 h-4" />
+              <Printer className="w-4 h-4 " />
               Print Card
             </motion.button>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 print:hidden">
-          <p className="text-xs text-gray-500 text-center">
+        <div className="bg-gray-50   border-t border-gray-200 print:hidden">
+          <p className="text-xs text-gray-500 text-center ">
             © 2026 State Election Commission, Sikkim • Official Voter ID Card
             Generator
           </p>
