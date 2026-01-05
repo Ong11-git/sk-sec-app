@@ -35,6 +35,47 @@ function buildVoterWhere(effectiveFilter) {
   };
 }
 
+async function getTotalDistricts(filters) {
+  if (filters.districtId) return 1;
+  return prisma.district.count();
+}
+
+async function getTotalConstituencies(filters) {
+  if (filters.districtId) {
+    return prisma.constituency.count({
+      where: {
+        districts: {
+          some: { districtId: Number(filters.districtId) },
+        },
+      },
+    });
+  }
+  if (filters.constituencyId) return 1;
+  return prisma.constituency.count();
+}
+
+async function getScopeName(effectiveFilter) {
+  if (!effectiveFilter) return "Sikkim";
+
+  const { key, value } = effectiveFilter;
+  if (key === "districtId") {
+    const district = await prisma.district.findUnique({
+      where: { id: value },
+      select: { name: true },
+    });
+    return district?.name || "Unknown District";
+  }
+  if (key === "constituencyId") {
+    const constituency = await prisma.constituency.findUnique({
+      where: { id: value },
+      select: { name: true },
+    });
+    return constituency?.name || "Unknown Constituency";
+  }
+  // Add more if needed
+  return "Unknown";
+}
+
 /**
  * Get filter options for cascading dropdowns
  */
@@ -135,12 +176,13 @@ export async function getDashboardAnalytics(filters = {}) {
       genderDistribution,
       constituencyWiseVoters,
       voterLastNames,
+      scopeName,
     ] = await Promise.all([
       prisma.voter.count({ where }),
 
-      prisma.district.count(),
+      getTotalDistricts(filters),
 
-      prisma.constituency.count(),
+      getTotalConstituencies(filters),
 
       getAverageVoterAge(where),
 
@@ -153,11 +195,17 @@ export async function getDashboardAnalytics(filters = {}) {
       getConstituencyWiseVoterCount(where),
 
       getVoterLastNames(where),
+
+      getScopeName(effectiveFilter),
     ]);
 
     return {
       scope: effectiveFilter
-        ? { level: effectiveFilter.key, id: effectiveFilter.value }
+        ? {
+            level: effectiveFilter.key,
+            id: effectiveFilter.value,
+            name: scopeName,
+          }
         : { level: "state", name: "Sikkim" },
 
       totals: {

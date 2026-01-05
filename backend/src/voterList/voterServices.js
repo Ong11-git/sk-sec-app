@@ -763,7 +763,15 @@ export async function createVoter(data) {
       },
     });
 
-    return voter;
+    // Generate state epic number if hierarchy is complete
+    try {
+      const updatedVoter = await generateStateEpicNo(voter.id);
+      return updatedVoter;
+    } catch (genError) {
+      // If generation fails, return the voter without stateEpicNo
+      console.warn("Failed to generate state epic number:", genError.message);
+      return voter;
+    }
   } catch (error) {
     console.error("Error creating voter:", error.message);
     throw new Error(error.message || "Failed to create voter");

@@ -4,7 +4,7 @@ import userRouter from "./src/user/userRouter.js";
 import { seedAdmin } from "./src/admin/seedAdmin.js";
 import pdfRouter from "./src/pdf/pdfRoute.js";
 import cors from "cors";
-import voterRouter from "./src/voterList/VoterRoute.js";
+import voterRouter from "./src/voterList/voterRoute.js";
 import constituencyRouter from "./src/constituency/constituencyRoute.js";
 import districtRouter from "./src/district/districtRoute.js";
 import tcRouter from "./src/tc/tcRoute.js";
