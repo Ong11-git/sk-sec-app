@@ -16,6 +16,7 @@ import AddDistrict from "./pages/AddDistrict";
 import AddGpu from "./pages/AddGpu";
 import Municipality from "./pages/Municipality"; // Add this import
 import MunicipalWard from "./pages/MunicipalWard";
+import SeatReservationPage from "./pages/SeatReservationPage";
 
 // Main App Component
 function AppContent() {
@@ -29,6 +30,7 @@ function AppContent() {
     | "gpu"
     | "municipality"
     | "municipalWard"
+    | "seatReservation"
   >("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -47,6 +49,7 @@ function AppContent() {
     "#gpu": "gpu",
     "#municipality": "municipality",
     "#municipal-ward": "municipalWard",
+    "#seat-reservation": "seatReservation",
   };
 
   // Tab to hash mapping
@@ -60,6 +63,7 @@ function AppContent() {
     gpu: "#gpu",
     municipality: "#municipality",
     municipalWard: "#municipal-ward",
+    seatReservation: "#seat-reservation",
   };
 
   // Initialize activeTab from URL hash on mount
@@ -203,6 +207,8 @@ function AppContent() {
         return <Municipality />;
       case "municipalWard":
         return <MunicipalWard />;
+      case "seatReservation":
+        return <SeatReservationPage />;
       case "voters":
         return <VotersList />;
       case "addVoters":

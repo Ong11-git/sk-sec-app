@@ -12,6 +12,7 @@ import {
   User,
   Shield,
   Building2,
+  Calculator,
 } from "lucide-react";
 
 type TabKey =
@@ -23,7 +24,8 @@ type TabKey =
   | "district"
   | "gpu"
   | "municipality"
-  | "municipalWard";
+  | "municipalWard"
+  | "seatReservation";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -78,6 +80,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       label: "Municipal Ward",
       icon: Building2,
     },
+    {
+      key: "seatReservation" as TabKey,
+      label: "Seat Reservation",
+      icon: Calculator,
+    },
     // { key: "voters" as TabKey, label: "Voters List", icon: Users },
     // { key: "votersFilters" as TabKey, label: "Voters Filters", icon: Filter },
     { key: "addVoters" as TabKey, label: "Add Voters", icon: UserPlus },
@@ -90,6 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     territorialConstituency: "text-amber-500",
     municipality: "text-cyan-500",
     municipalWard: "text-teal-500",
+    seatReservation: "text-indigo-500",
     voters: "text-teal-500",
     addVoters: "text-red-500",
     gpu: "text-yellow-500",
