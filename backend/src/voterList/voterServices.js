@@ -99,6 +99,7 @@ export async function getAllVoters() {
         select: {
           id: true,
           name: true,
+          municipalityNo: true,
           constituency: {
             select: {
               id: true,

@@ -258,14 +258,14 @@ export default function VoterCardGenerator({
                     <div className="flex gap-3 md:gap-4">
                       {/* Left Column - Photo & EPIC Numbers */}
                       <div className="flex-shrink-0">
-                        {/* Static State EPIC Number - ABOVE PHOTO */}
+                        {/* Dynamic State EPIC Number - ABOVE PHOTO */}
                         <div className="mb-2">
                           <p className="text-xs font-bold text-gray-900 md:text-sm print:text-black">
                             State EPIC No.
                           </p>
                           <div className="rounded bg-gray-800 px-3 py-1.5 shadow-sm print:bg-black">
                             <p className="text-center text-sm font-bold text-white md:text-base">
-                              SKGY0201010101
+                              {voter.stateEpicNo || "N/A"}
                             </p>
                           </div>
                         </div>

@@ -4,7 +4,6 @@ import {
   Map,
   Flag,
   Layers,
-  Filter,
   UserPlus,
   X,
   Home,
@@ -19,12 +18,10 @@ type TabKey =
   | "dashboard"
   | "voters"
   | "addVoters"
-  | "votersFilters"
   | "constituency"
   | "territorialConstituency"
   | "district"
   | "gpu"
-  | "ward"
   | "municipality"
   | "municipalWard";
 
@@ -74,7 +71,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: Layers,
     },
     { key: "gpu" as TabKey, label: "GPU", icon: Home },
-    { key: "ward" as TabKey, label: "Ward", icon: Home },
+    // { key: "ward" as TabKey, label: "Ward", icon: Home },
     { key: "municipality" as TabKey, label: "Municipality", icon: Building2 },
     {
       key: "municipalWard" as TabKey,
@@ -82,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: Building2,
     },
     // { key: "voters" as TabKey, label: "Voters List", icon: Users },
-    { key: "votersFilters" as TabKey, label: "Voters Filters", icon: Filter },
+    // { key: "votersFilters" as TabKey, label: "Voters Filters", icon: Filter },
     { key: "addVoters" as TabKey, label: "Add Voters", icon: UserPlus },
   ];
 
@@ -94,10 +91,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     municipality: "text-cyan-500",
     municipalWard: "text-teal-500",
     voters: "text-teal-500",
-    votersFilters: "text-pink-500",
     addVoters: "text-red-500",
     gpu: "text-yellow-500",
-    ward: "text-indigo-500",
   };
 
   const handleLogout = () => {

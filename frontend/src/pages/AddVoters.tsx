@@ -293,8 +293,9 @@ export default function AddVoters() {
       );
       if (!res.ok) throw new Error("Failed to fetch Municipal Wards");
       const data = await res.json();
-      setMunicipalWards(data.wards || data);
-      return data;
+      const wards = data.wards || data;
+      setMunicipalWards(wards);
+      return wards;
     } catch (err: any) {
       setError(err.message);
       return [];
@@ -3627,10 +3628,10 @@ export default function AddVoters() {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             transition={{ type: "spring", duration: 0.5 }}
-            className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto z-10"
+            className="relative bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[85vh] sm:max-h-[90vh] overflow-hidden z-10 mx-2 sm:mx-4 md:mx-auto flex flex-col"
           >
             {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-6 py-4 rounded-t-xl">
+            <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-3 sm:px-6 py-2 sm:py-4 rounded-t-xl flex-shrink-0">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/20 rounded-lg">
@@ -3658,7 +3659,7 @@ export default function AddVoters() {
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-5">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-5">
               {/* PDF File Upload */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -3666,7 +3667,7 @@ export default function AddVoters() {
                   Electoral Roll PDF *
                 </label>
                 <div
-                  className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all ${
+                  className={`relative border-2 border-dashed rounded-xl p-2 sm:p-6 text-center transition-all min-h-[80px] sm:min-h-[140px] ${
                     pdfFile
                       ? "border-emerald-400 bg-emerald-50"
                       : "border-gray-300 hover:border-emerald-400 hover:bg-emerald-50/50"
@@ -3707,11 +3708,11 @@ export default function AddVoters() {
                     </div>
                   ) : (
                     <div>
-                      <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-600 font-medium">
+                      <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 mx-auto mb-1 sm:mb-2" />
+                      <p className="text-sm sm:text-base text-gray-600 font-medium">
                         Click to upload or drag and drop
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-gray-400 mt-0.5 sm:mt-1">
                         PDF files only (max 10MB)
                       </p>
                     </div>
@@ -3724,7 +3725,7 @@ export default function AddVoters() {
                 <label className="text-sm font-semibold text-gray-700">
                   Area Type *
                 </label>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     type="button"
                     onClick={() => {
@@ -3732,13 +3733,15 @@ export default function AddVoters() {
                       setPdfImportMunicipality(null);
                       setPdfImportMunicipalWard(null);
                     }}
-                    className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all min-h-[48px] ${
                       pdfImportAreaType === "Rural"
                         ? "bg-emerald-600 text-white shadow-md"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                   >
-                    🌳 Rural (GPU/Ward)
+                    <span className="flex items-center justify-center gap-2">
+                      🌳 <span>Rural (GPU/Ward)</span>
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -3748,13 +3751,15 @@ export default function AddVoters() {
                       setPdfImportGpu(null);
                       setPdfImportWard(null);
                     }}
-                    className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all min-h-[48px] ${
                       pdfImportAreaType === "Urban"
                         ? "bg-emerald-600 text-white shadow-md"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                   >
-                    🏢 Urban (Municipality)
+                    <span className="flex items-center justify-center gap-2">
+                      🏢 <span>Urban (Municipality)</span>
+                    </span>
                   </button>
                 </div>
               </div>
@@ -4014,7 +4019,7 @@ export default function AddVoters() {
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 border-t flex justify-end gap-3 rounded-b-xl">
+            <div className="bg-gray-50 px-3 sm:px-6 py-2 sm:py-4 border-t flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 rounded-b-xl flex-shrink-0">
               <button
                 type="button"
                 onClick={() => {

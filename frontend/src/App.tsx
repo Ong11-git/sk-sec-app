@@ -10,12 +10,10 @@ import Dashboard from "./pages/Dashboard";
 import VotersList from "./pages/VotersList";
 import "./App.css";
 import AddVoters from "./pages/AddVoters";
-import VoterFilters from "./pages/VoterFIlters";
 import AddConstituency from "./pages/AddConstituency";
 import AddTC from "./pages/AddTC";
 import AddDistrict from "./pages/AddDistrict";
 import AddGpu from "./pages/AddGpu";
-import AddWard from "./pages/AddWard";
 import Municipality from "./pages/Municipality"; // Add this import
 import MunicipalWard from "./pages/MunicipalWard";
 
@@ -25,18 +23,99 @@ function AppContent() {
     | "dashboard"
     | "voters"
     | "addVoters"
-    | "votersFilters"
     | "constituency"
     | "territorialConstituency"
     | "district"
     | "gpu"
-    | "ward"
     | "municipality"
     | "municipalWard"
   >("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isUpdatingHash, setIsUpdatingHash] = useState(false);
+
+  // Hash to tab mapping
+  const hashToTab: Record<string, typeof activeTab> = {
+    "#dashboard": "dashboard",
+    "#voters": "voters",
+    "#add-voters": "addVoters",
+    "#constituency": "constituency",
+    "#territorial-constituency": "territorialConstituency",
+    "#district": "district",
+    "#gpu": "gpu",
+    "#municipality": "municipality",
+    "#municipal-ward": "municipalWard",
+  };
+
+  // Tab to hash mapping
+  const tabToHash: Record<typeof activeTab, string> = {
+    dashboard: "#dashboard",
+    voters: "#voters",
+    addVoters: "#add-voters",
+    constituency: "#constituency",
+    territorialConstituency: "#territorial-constituency",
+    district: "#district",
+    gpu: "#gpu",
+    municipality: "#municipality",
+    municipalWard: "#municipal-ward",
+  };
+
+  // Initialize activeTab from URL hash on mount
+  useEffect(() => {
+    // Use setTimeout to ensure this runs after all other initialization
+    const timeoutId = setTimeout(() => {
+      const hash = window.location.hash;
+      if (hash && hashToTab[hash]) {
+        setActiveTab(hashToTab[hash]);
+      } else if (!hash) {
+        // If no hash, set default dashboard hash
+        window.location.hash = "#dashboard";
+      }
+      setIsInitialized(true);
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  // Listen for hash changes (browser back/forward buttons)
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const handleHashChange = () => {
+      if (isUpdatingHash) return; // Ignore hash changes caused by our own updates
+
+      const newHash = window.location.hash;
+      const expectedTab = hashToTab[newHash];
+
+      if (expectedTab && expectedTab !== activeTab) {
+        setActiveTab(expectedTab);
+      } else if (!expectedTab && newHash !== "#dashboard") {
+        // Invalid hash, redirect to dashboard
+        setIsUpdatingHash(true);
+        window.location.hash = "#dashboard";
+        setActiveTab("dashboard");
+        setTimeout(() => setIsUpdatingHash(false), 10);
+      }
+    };
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, [isInitialized, activeTab, isUpdatingHash]);
+
+  // Update URL hash when activeTab changes
+  useEffect(() => {
+    if (!isInitialized || isUpdatingHash) return;
+
+    const hash = tabToHash[activeTab];
+    if (hash && window.location.hash !== hash) {
+      setIsUpdatingHash(true);
+      window.location.hash = hash;
+      // Reset the flag after a short delay
+      setTimeout(() => setIsUpdatingHash(false), 10);
+    }
+  }, [activeTab, isInitialized, isUpdatingHash]);
 
   // Check for mobile on mount and resize
   useEffect(() => {
@@ -124,12 +203,8 @@ function AppContent() {
         return <Municipality />;
       case "municipalWard":
         return <MunicipalWard />;
-      case "ward":
-        return <AddWard />;
       case "voters":
         return <VotersList />;
-      case "votersFilters":
-        return <VoterFilters />;
       case "addVoters":
         return <AddVoters />;
       default:

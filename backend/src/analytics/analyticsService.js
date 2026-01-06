@@ -328,27 +328,11 @@ async function getAgeGroupDistribution(where) {
   }));
 }
 
-// async function getGenderDistribution() {
-//   const genders = [
-//     { db: "M", label: "Male" },
-//     { db: "F", label: "Female" },
-//     { db: "O", label: "Other" },
-//   ];
-
-//   return Promise.all(
-//     genders.map(async (g) => ({
-//       gender: g.label,
-//       count: await prisma.voter.count({
-//         where: { gender: g.db },
-//       }),
-//     }))
-//   );
-// }
 async function getGenderDistribution(where) {
   const genders = [
-    { db: "M", label: "Male" },
-    { db: "F", label: "Female" },
-    { db: "O", label: "Other" },
+    { db: "Male", label: "Male" },
+    { db: "Female", label: "Female" },
+    { db: "Other", label: "Other" },
   ];
 
   return Promise.all(

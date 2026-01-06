@@ -33,11 +33,11 @@ app.use(bodyParser.json());
 
 seedAdmin();
 seedDistricts();
-// seedDistricts().then(() => {
-//   seedAllData().then(() => {
-//     seedVoters();
-//   });
-// });
+seedDistricts().then(() => {
+  seedAllData().then(() => {
+    seedVoters();
+  });
+});
 
 // seedConstituencies();
 app.use("/user", userRouter);
