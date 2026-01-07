@@ -19,17 +19,27 @@ export async function createMunicipalWard(data) {
     throw new Error("Municipality does not exist");
   }
 
-  // Uniqueness check (within same municipality)
-  const exists = await prisma.municipalWard.findFirst({
+  // Uniqueness check (ward_no globally unique, name unique within municipality)
+  const wardNoExists = await prisma.municipalWard.findFirst({
+    where: { ward_no: wardNo },
+  });
+
+  if (wardNoExists) {
+    throw new Error(
+      "Municipal ward number must be unique across all municipalities"
+    );
+  }
+
+  const nameExists = await prisma.municipalWard.findFirst({
     where: {
       municipalityId: Number(municipalityId),
-      OR: [{ ward_no: wardNo }, { name }],
+      name,
     },
   });
 
-  if (exists) {
+  if (nameExists) {
     throw new Error(
-      "Municipal ward already exists with same name or ward number in this municipality"
+      "Municipal ward already exists with same name in this municipality"
     );
   }
 
@@ -58,18 +68,31 @@ export async function updateMunicipalWard(id, name, wardNo) {
     throw new Error("Municipal ward not found");
   }
 
-  // Uniqueness check (exclude current ward)
-  const exists = await prisma.municipalWard.findFirst({
+  // Uniqueness check (ward_no globally unique, name unique within municipality, exclude current ward)
+  const wardNoExists = await prisma.municipalWard.findFirst({
     where: {
-      municipalityId: ward.municipalityId,
+      ward_no: wardNo,
       id: { not: Number(id) },
-      OR: [{ ward_no: wardNo }, { name }],
     },
   });
 
-  if (exists) {
+  if (wardNoExists) {
     throw new Error(
-      "Another municipal ward already exists with same name or ward number"
+      "Municipal ward number must be unique across all municipalities"
+    );
+  }
+
+  const nameExists = await prisma.municipalWard.findFirst({
+    where: {
+      municipalityId: ward.municipalityId,
+      name,
+      id: { not: Number(id) },
+    },
+  });
+
+  if (nameExists) {
+    throw new Error(
+      "Another municipal ward already exists with same name in this municipality"
     );
   }
 

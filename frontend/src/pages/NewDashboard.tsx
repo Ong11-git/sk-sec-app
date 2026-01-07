@@ -64,6 +64,7 @@ interface AnalyticsData {
   }[];
   ageGroupDistribution: { ageGroup: string; voters: number }[];
   genderDistribution: { gender: string; count: number }[];
+  casteCategoryDistribution: { casteCategory: string; count: number }[];
   voterLastNames: { lastName: string; count: number }[];
 }
 
@@ -203,12 +204,14 @@ const NewDashboard: React.FC<DashboardProps> = ({
       // Clear dependent filters when parent changes
       if (filterKey === "districtId") {
         newFilters.constituencyId = "";
-        newFilters.municipalityId = "";
-        newFilters.tcId = "";
+        // Note: municipalityId and tcId are now available at district level, so don't clear them
+        // newFilters.municipalityId = "";
+        // newFilters.tcId = "";
         newFilters.gpuId = "";
         newFilters.wardId = "";
         newFilters.municipalWardId = "";
       } else if (filterKey === "constituencyId") {
+        // When constituency changes, clear municipality and TC since they should be filtered by constituency
         newFilters.municipalityId = "";
         newFilters.tcId = "";
         newFilters.gpuId = "";
@@ -307,6 +310,7 @@ const NewDashboard: React.FC<DashboardProps> = ({
         districtData: [],
         ageGroupData: [],
         genderData: [],
+        casteCategoryData: [],
         constituencyData: [],
         communityData: [],
       };
@@ -343,6 +347,23 @@ const NewDashboard: React.FC<DashboardProps> = ({
             ? "#EC4899"
             : "#8B5CF6",
       })),
+      casteCategoryData: analyticsData.casteCategoryDistribution.map(
+        (item) => ({
+          name: item.casteCategory,
+          value: item.count,
+          color: (() => {
+            const colors: { [key: string]: string } = {
+              SC: "#3B82F6",
+              ST: "#10B981",
+              "OBC-State": "#8B5CF6",
+              "OBC-Central": "#F59E0B",
+              BL: "#EF4444",
+              General: "#6B7280",
+            };
+            return colors[item.casteCategory] || "#6B7280";
+          })(),
+        })
+      ),
       constituencyData: analyticsData.constituencyWiseVoters.map((item) => ({
         name: item.constituency,
         value: item.voters,
@@ -469,7 +490,7 @@ const NewDashboard: React.FC<DashboardProps> = ({
                   handleFilterChange("municipalityId", e.target.value)
                 }
                 className="select select-bordered w-full select-sm"
-                disabled={!filters.constituencyId}
+                disabled={!filters.districtId}
               >
                 <option value="">All Municipalities</option>
                 {filterOptions.municipalities.map((municipality) => (
@@ -511,7 +532,7 @@ const NewDashboard: React.FC<DashboardProps> = ({
                 value={filters.tcId}
                 onChange={(e) => handleFilterChange("tcId", e.target.value)}
                 className="select select-bordered w-full select-sm"
-                disabled={!filters.constituencyId}
+                disabled={!filters.districtId}
               >
                 <option value="">All TCs</option>
                 {filterOptions.tcs.map((tc) => (
@@ -794,8 +815,8 @@ const NewDashboard: React.FC<DashboardProps> = ({
         <div
           className={`grid gap-4 md:gap-6 transition-all duration-300 ${
             sidebarCollapsed
-              ? "grid-cols-1 xl:grid-cols-2"
-              : "grid-cols-1 lg:grid-cols-2"
+              ? "grid-cols-1 xl:grid-cols-3"
+              : "grid-cols-1 lg:grid-cols-3"
           }`}
         >
           {/* Age Group Distribution */}
@@ -833,6 +854,37 @@ const NewDashboard: React.FC<DashboardProps> = ({
                   animationEasing="ease-out"
                 />
               </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Caste Category Distribution */}
+          <div className="bg-white rounded-xl shadow-md p-4 md:p-6 transition-all duration-200 hover:shadow-lg">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">
+              Caste Category Distribution
+            </h3>
+            <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
+              <PieChart>
+                <Pie
+                  data={charts.casteCategoryData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={isMobile ? 40 : 60}
+                  outerRadius={isMobile ? 70 : 90}
+                  paddingAngle={3}
+                  dataKey="value"
+                  label={({ name, percent }) =>
+                    `${name}: ${(percent * 100).toFixed(1)}%`
+                  }
+                  animationDuration={1500}
+                  animationEasing="ease-out"
+                >
+                  {charts.casteCategoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+              </PieChart>
             </ResponsiveContainer>
           </div>
 

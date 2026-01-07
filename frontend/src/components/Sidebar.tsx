@@ -87,7 +87,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     },
     // { key: "voters" as TabKey, label: "Voters List", icon: Users },
     // { key: "votersFilters" as TabKey, label: "Voters Filters", icon: Filter },
-    { key: "addVoters" as TabKey, label: "Add Voters", icon: UserPlus },
+    { key: "addVoters" as TabKey, label: "Voters", icon: UserPlus },
   ];
 
   const iconColors: Record<TabKey, string> = {

@@ -108,9 +108,31 @@ export async function getFilterOptions(filters = {}) {
           name: dc.constituency.name,
           constituencyNo: dc.constituency.constituencyNo,
         })) || [];
+
+      // If no constituency is selected, get municipalities and TCs for the entire district
+      if (!filters.constituencyId) {
+        // Get all municipalities in this district
+        options.municipalities = await prisma.municipality.findMany({
+          where: { districtId: Number(filters.districtId) },
+          select: { id: true, name: true, municipalityNo: true },
+          orderBy: { name: "asc" },
+        });
+
+        // Get all TCs in constituencies of this district
+        const constituencyIds = options.constituencies.map((c) => c.id);
+        if (constituencyIds.length > 0) {
+          options.tcs = await prisma.tc.findMany({
+            where: { constituencyId: { in: constituencyIds } },
+            select: { id: true, tc_name: true, tc_no: true },
+            orderBy: { tc_name: "asc" },
+          });
+        } else {
+          options.tcs = [];
+        }
+      }
     }
 
-    // If constituency is selected, get municipalities and TCs
+    // If constituency is selected, get municipalities and TCs for that specific constituency
     if (filters.constituencyId) {
       // Get municipalities in this constituency
       options.municipalities = await prisma.municipality.findMany({
@@ -174,6 +196,7 @@ export async function getDashboardAnalytics(filters = {}) {
       districtWiseVoters,
       ageGroupDistribution,
       genderDistribution,
+      casteCategoryDistribution,
       constituencyWiseVoters,
       voterLastNames,
       scopeName,
@@ -191,6 +214,8 @@ export async function getDashboardAnalytics(filters = {}) {
       getAgeGroupDistribution(where),
 
       getGenderDistribution(where),
+
+      getCasteCategoryDistribution(where),
 
       getConstituencyWiseVoterCount(where),
 
@@ -219,6 +244,7 @@ export async function getDashboardAnalytics(filters = {}) {
       constituencyWiseVoters,
       ageGroupDistribution,
       genderDistribution,
+      casteCategoryDistribution,
       voterLastNames,
     };
   } catch (error) {
@@ -330,9 +356,9 @@ async function getAgeGroupDistribution(where) {
 
 async function getGenderDistribution(where) {
   const genders = [
-    { db: "Male", label: "Male" },
-    { db: "Female", label: "Female" },
-    { db: "Other", label: "Other" },
+    { db: "M", label: "Male" },
+    { db: "F", label: "Female" },
+    { db: "O", label: "Other" },
   ];
 
   return Promise.all(
@@ -340,6 +366,26 @@ async function getGenderDistribution(where) {
       gender: g.label,
       count: await prisma.voter.count({
         where: { ...where, gender: g.db },
+      }),
+    }))
+  );
+}
+
+async function getCasteCategoryDistribution(where) {
+  const casteCategories = [
+    { db: "SC", label: "SC" },
+    { db: "ST", label: "ST" },
+    { db: "OBC-State", label: "OBC-State" },
+    { db: "OBC-Central", label: "OBC-Central" },
+    { db: "BL", label: "BL" },
+    { db: null, label: "General" },
+  ];
+
+  return Promise.all(
+    casteCategories.map(async (c) => ({
+      casteCategory: c.label,
+      count: await prisma.voter.count({
+        where: { ...where, casteCategory: c.db },
       }),
     }))
   );

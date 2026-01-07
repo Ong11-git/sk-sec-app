@@ -18,7 +18,7 @@ export async function getAllGpus() {
                 districts: {
                   select: {
                     district: {
-                      select: { id: true, name: true, code: true},
+                      select: { id: true, name: true, code: true },
                     },
                   },
                 },
@@ -45,7 +45,7 @@ export async function getAllGpus() {
               ? {
                   id: gpu.tc.constituency.id,
                   name: gpu.tc.constituency.name,
-                  no: gpu.tc.constituency.constituencyNo,
+                  constituencyNo: gpu.tc.constituency.constituencyNo,
                   districts: gpu.tc.constituency.districts.map((d) => ({
                     id: d.district.id,
                     name: d.district.name,
@@ -76,7 +76,9 @@ export async function createGpu({ gpu_no, gpu_name, tcId }) {
             id: true,
             tc_no: true,
             tc_name: true,
-            constituency: { select: { id: true, name: true, constituencyNo: true } },
+            constituency: {
+              select: { id: true, name: true, constituencyNo: true },
+            },
           },
         },
       },
@@ -88,8 +90,6 @@ export async function createGpu({ gpu_no, gpu_name, tcId }) {
     throw new Error("Failed to create GPU");
   }
 }
-
-
 
 // ✅ Update GPU
 export async function updateGpu(id, { gpu_no, gpu_name, tcId }) {
@@ -106,7 +106,9 @@ export async function updateGpu(id, { gpu_no, gpu_name, tcId }) {
             id: true,
             tc_no: true,
             tc_name: true,
-            constituency: { select: { id: true, name: true, constituencyNo: true } },
+            constituency: {
+              select: { id: true, name: true, constituencyNo: true },
+            },
           },
         },
       },
@@ -129,7 +131,6 @@ export async function deleteGpu(id) {
     throw new Error("Failed to delete GPU");
   }
 }
-
 
 export async function getGpusByTc(tcId) {
   return await prisma.gpu.findMany({

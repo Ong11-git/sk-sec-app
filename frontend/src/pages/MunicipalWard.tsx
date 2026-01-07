@@ -571,11 +571,11 @@ export default function MunicipalWard() {
                 <th className="text-gray-700 font-semibold py-3 px-4 text-xs uppercase tracking-wider">
                   <div className="flex items-center">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#061E47] mr-1.5"></div>
-                    Ward No
+                    ID
                   </div>
                 </th>
                 <th className="text-gray-700 font-semibold py-3 px-4 text-xs uppercase tracking-wider">
-                  Ward Name
+                  Ward Name & No
                 </th>
                 <th className="text-gray-700 font-semibold py-3 px-4 text-xs uppercase tracking-wider">
                   Municipality
@@ -669,7 +669,7 @@ export default function MunicipalWard() {
                             className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-[#061E47] to-[#0A2B6B] mr-2"
                           />
                           <span className="font-semibold text-sm">
-                            {item.ward_no}
+                            {item.id}
                           </span>
                         </div>
                       </td>
@@ -677,6 +677,9 @@ export default function MunicipalWard() {
                         <div className="flex flex-col">
                           <span className="font-medium text-gray-800 text-sm">
                             {item.name}
+                          </span>
+                          <span className="text-xs text-gray-500 mt-0.5">
+                            Ward No: {item.ward_no}
                           </span>
                         </div>
                       </td>

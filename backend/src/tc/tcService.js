@@ -39,7 +39,7 @@ export async function getAllTCs() {
       name: tc.tc_name,
       constituency: {
         id: tc.constituency.id,
-        no: tc.constituency.constituencyNo,
+        constituencyNo: tc.constituency.constituencyNo,
         name: tc.constituency.name,
       },
       districts: tc.constituency.districts.map((d) => ({
@@ -86,7 +86,6 @@ export async function createTC(data) {
     throw new Error("Failed to create TC");
   }
 }
-
 
 // 🔄 Update TC
 export async function updateTC(id, data) {
@@ -139,7 +138,6 @@ export async function deleteTC(id) {
     throw new Error("Failed to delete TC");
   }
 }
-
 
 // ✅ Get all TCs by constituency
 export async function getTCsByConstituency(constituencyId) {

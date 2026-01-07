@@ -5,7 +5,7 @@ import prisma from "../../prisma/prisma.js";
  * Get all municipalities
  */
 export async function getAllMunicipalities() {
-  return prisma.municipality.findMany({
+  const municipalities = await prisma.municipality.findMany({
     select: {
       id: true,
       name: true,
@@ -19,6 +19,17 @@ export async function getAllMunicipalities() {
     },
     orderBy: { name: "asc" },
   });
+
+  // Map to frontend expected format
+  return municipalities.map((municipality) => ({
+    id: municipality.id,
+    municipality_name: municipality.name,
+    municipality_no: municipality.municipalityNo,
+    district: municipality.district,
+    constituency: municipality.constituency,
+    districtId: municipality.district?.id,
+    constituencyId: municipality.constituency?.id,
+  }));
 }
 
 /**
@@ -39,21 +50,39 @@ export async function createMunicipality(data) {
     throw new Error("Municipality already exists with same name or number");
   }
 
-  return prisma.municipality.create({
-    data: {
-      name,
-      municipalityNo,
+  return prisma.municipality
+    .create({
+      data: {
+        name,
+        municipalityNo,
 
-      // Connect only if provided
-      ...(districtId && {
-        district: { connect: { id: Number(districtId) } },
-      }),
+        // Connect only if provided
+        ...(districtId && {
+          district: { connect: { id: Number(districtId) } },
+        }),
 
-      ...(constituencyId && {
-        constituency: { connect: { id: Number(constituencyId) } },
-      }),
-    },
-  });
+        ...(constituencyId && {
+          constituency: { connect: { id: Number(constituencyId) } },
+        }),
+      },
+      include: {
+        district: {
+          select: { id: true, name: true, code: true },
+        },
+        constituency: {
+          select: { id: true, name: true, constituencyNo: true },
+        },
+      },
+    })
+    .then((municipality) => ({
+      id: municipality.id,
+      municipality_name: municipality.name,
+      municipality_no: municipality.municipalityNo,
+      district: municipality.district,
+      constituency: municipality.constituency,
+      districtId: municipality.district?.id,
+      constituencyId: municipality.constituency?.id,
+    }));
 }
 
 /**
@@ -78,15 +107,33 @@ export async function updateMunicipality(id, data) {
     }
   }
 
-  return prisma.municipality.update({
-    where: { id },
-    data: {
-      name,
-      municipalityNo,
-      districtId,
-      constituencyId,
-    },
-  });
+  return prisma.municipality
+    .update({
+      where: { id },
+      data: {
+        name,
+        municipalityNo,
+        districtId,
+        constituencyId,
+      },
+      include: {
+        district: {
+          select: { id: true, name: true, code: true },
+        },
+        constituency: {
+          select: { id: true, name: true, constituencyNo: true },
+        },
+      },
+    })
+    .then((municipality) => ({
+      id: municipality.id,
+      municipality_name: municipality.name,
+      municipality_no: municipality.municipalityNo,
+      district: municipality.district,
+      constituency: municipality.constituency,
+      districtId: municipality.district?.id,
+      constituencyId: municipality.constituency?.id,
+    }));
 }
 
 /**
