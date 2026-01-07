@@ -18,26 +18,29 @@ import { seedVoters } from "./src/voterList/seedVoters.js";
 import { seedAllData } from "./src/seeds/seedAllData.js";
 
 const app = express();
-const PORT = 8080;
+//const PORT = 8080;
+const PORT = process.env.PORT || 3001;
 
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+/* CORS — SINGLE SOURCE OF TRUTH */
+app.use(cors({
+  origin: "https://sksecvoters.bolds.fun",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
+/* THIS IS THE OPTIONS HANDLING LINE */
+//app.options("*", cors());
+
 
 app.use(bodyParser.json());
 
-seedAdmin();
-seedDistricts();
-seedDistricts().then(() => {
-  seedAllData().then(() => {
-    seedVoters();
-  });
-});
+//seedAdmin();
+//seedDistricts();
+//seedDistricts().then(() => {
+  //seedAllData().then(() => {
+//    seedVoters();
+//  });
+//});
 
 // seedConstituencies();
 app.use("/user", userRouter);
@@ -52,8 +55,9 @@ app.use("/gpus", gpuRouter);
 app.use("/wards", wardRouter);
 app.use("/municipal-wards", municipalWardRouter);
 
-app.listen(PORT, () =>
-  console.log(`Server  running on port: http://localhost:${PORT}`)
-);
+//app.listen(PORT, () =>
+//  console.log(`Server  running on port: http://localhost:${PORT}`)
+//);
+app.listen(PORT);
 
 export default app;
