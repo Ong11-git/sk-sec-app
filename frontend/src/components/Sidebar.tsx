@@ -13,6 +13,7 @@ import {
   Shield,
   Building2,
   Calculator,
+  MapPin,
 } from "lucide-react";
 
 type TabKey =
@@ -23,6 +24,7 @@ type TabKey =
   | "territorialConstituency"
   | "district"
   | "gpu"
+  | "ward"
   | "municipality"
   | "municipalWard"
   | "seatReservation";
@@ -73,7 +75,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: Layers,
     },
     { key: "gpu" as TabKey, label: "GPU", icon: Home },
-    // { key: "ward" as TabKey, label: "Ward", icon: Home },
+    { key: "ward" as TabKey, label: "Ward", icon: MapPin },
     { key: "municipality" as TabKey, label: "Municipality", icon: Building2 },
     {
       key: "municipalWard" as TabKey,
@@ -101,6 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     voters: "text-teal-500",
     addVoters: "text-red-500",
     gpu: "text-yellow-500",
+    ward: "text-orange-500",
   };
 
   const handleLogout = () => {

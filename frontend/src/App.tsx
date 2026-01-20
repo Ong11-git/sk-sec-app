@@ -16,6 +16,7 @@ import AddDistrict from "./pages/AddDistrict";
 import AddGpu from "./pages/AddGpu";
 import Municipality from "./pages/Municipality"; // Add this import
 import MunicipalWard from "./pages/MunicipalWard";
+import Ward from "./pages/Ward";
 import SeatReservationPage from "./pages/SeatReservationPage";
 
 // Main App Component
@@ -28,6 +29,7 @@ function AppContent() {
     | "territorialConstituency"
     | "district"
     | "gpu"
+    | "ward"
     | "municipality"
     | "municipalWard"
     | "seatReservation"
@@ -47,6 +49,7 @@ function AppContent() {
     "#territorial-constituency": "territorialConstituency",
     "#district": "district",
     "#gpu": "gpu",
+    "#ward": "ward",
     "#municipality": "municipality",
     "#municipal-ward": "municipalWard",
     "#seat-reservation": "seatReservation",
@@ -61,6 +64,7 @@ function AppContent() {
     territorialConstituency: "#territorial-constituency",
     district: "#district",
     gpu: "#gpu",
+    ward: "#ward",
     municipality: "#municipality",
     municipalWard: "#municipal-ward",
     seatReservation: "#seat-reservation",
@@ -203,6 +207,8 @@ function AppContent() {
         return <AddTC />;
       case "gpu":
         return <AddGpu />;
+      case "ward":
+        return <Ward />;
       case "municipality": // Add municipality case
         return <Municipality />;
       case "municipalWard":

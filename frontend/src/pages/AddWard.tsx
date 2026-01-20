@@ -77,13 +77,13 @@ export default function MunicipalWard() {
   });
 
   const sortedMunicipalWards = [...filteredMunicipalWards].sort(
-    (a, b) => a.id - b.id
+    (a, b) => a.id - b.id,
   );
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedMunicipalWards.slice(
     indexOfFirstItem,
-    indexOfLastItem
+    indexOfLastItem,
   );
   const totalPages = Math.ceil(sortedMunicipalWards.length / itemsPerPage);
 
@@ -127,8 +127,8 @@ export default function MunicipalWard() {
       backgroundColor: state.isSelected
         ? "#061E47"
         : state.isFocused
-        ? "rgba(6, 30, 71, 0.05)"
-        : "white",
+          ? "rgba(6, 30, 71, 0.05)"
+          : "white",
       color: state.isSelected ? "white" : "#1E293B",
       fontSize: "0.875rem",
       padding: "8px 12px",
@@ -185,7 +185,7 @@ export default function MunicipalWard() {
         `${import.meta.env.VITE_API_BASE_URL}/municipalities/all`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (!res.ok) throw new Error("Failed to fetch municipalities");
       const data = await res.json();
@@ -202,7 +202,7 @@ export default function MunicipalWard() {
         `${import.meta.env.VITE_API_BASE_URL}/municipal-wards/all`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (!res.ok) throw new Error("Failed to fetch municipal wards");
       const data = await res.json();
@@ -285,7 +285,7 @@ export default function MunicipalWard() {
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (!res.ok) throw new Error("Failed to delete municipal ward");
       setMunicipalWards((prev) => prev.filter((w) => w.id !== id));
@@ -311,7 +311,7 @@ export default function MunicipalWard() {
       setSelectedMunicipality(municipalityOption);
     } else if (ward.municipalityId) {
       const municipality = municipalities.find(
-        (m) => m.id === ward.municipalityId
+        (m) => m.id === ward.municipalityId,
       );
       if (municipality) {
         const municipalityOption = {
@@ -485,8 +485,8 @@ export default function MunicipalWard() {
                         {searchType === "wardName"
                           ? "Ward Name"
                           : searchType === "wardNo"
-                          ? "Ward No"
-                          : "Municipality"}
+                            ? "Ward No"
+                            : "Municipality"}
                       </span>
                     </label>
                     <ul

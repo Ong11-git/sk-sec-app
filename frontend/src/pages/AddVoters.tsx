@@ -130,7 +130,7 @@ export default function AddVoters() {
     label: string;
   } | null>(null);
   const [pdfImportAreaType, setPdfImportAreaType] = useState<"Rural" | "Urban">(
-    "Rural"
+    "Rural",
   );
   const [pdfImportResult, setPdfImportResult] = useState<any>(null);
   const [isPdfUploading, setIsPdfUploading] = useState(false);
@@ -177,7 +177,7 @@ export default function AddVoters() {
         `${import.meta.env.VITE_API_BASE_URL}/districts`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (!res.ok) throw new Error("Failed to fetch districts");
       const data = await res.json();
@@ -194,7 +194,24 @@ export default function AddVoters() {
         `${import.meta.env.VITE_API_BASE_URL}/municipalities/all`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
+      );
+      if (!res.ok) throw new Error("Failed to fetch municipalities");
+      const data = await res.json();
+      setMunicipalities(data);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const fetchMunicipalitiesByDistrict = async (districtId: number) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/municipalities/by-district/${districtId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
       );
       if (!res.ok) throw new Error("Failed to fetch municipalities");
       const data = await res.json();
@@ -211,7 +228,7 @@ export default function AddVoters() {
         `${
           import.meta.env.VITE_API_BASE_URL
         }/constituencies/by-district/${districtId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       if (!res.ok) throw new Error("Failed to fetch constituencies");
       const data = await res.json();
@@ -230,7 +247,7 @@ export default function AddVoters() {
         `${
           import.meta.env.VITE_API_BASE_URL
         }/tcs/by-constituency/${constituencyId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       if (!res.ok) throw new Error("Failed to fetch TCs");
       const data = await res.json();
@@ -249,7 +266,7 @@ export default function AddVoters() {
         `${import.meta.env.VITE_API_BASE_URL}/gpus/by-tc/${tcId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (!res.ok) throw new Error("Failed to fetch GPUs");
       const data = await res.json();
@@ -268,7 +285,7 @@ export default function AddVoters() {
         `${import.meta.env.VITE_API_BASE_URL}/wards/by-gpu/${gpuId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (!res.ok) throw new Error("Failed to fetch Wards");
       const data = await res.json();
@@ -289,7 +306,7 @@ export default function AddVoters() {
         }/municipal-wards/by-municipality/${municipalityId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (!res.ok) throw new Error("Failed to fetch Municipal Wards");
       const data = await res.json();
@@ -305,7 +322,7 @@ export default function AddVoters() {
   // Create voter with photo via backend API (handles Cloudinary upload)
   const createVoterWithPhoto = async (
     voterData: any,
-    photoFile: File | null
+    photoFile: File | null,
   ) => {
     const token = sessionStorage.getItem("token");
     const formData = new FormData();
@@ -330,7 +347,7 @@ export default function AddVoters() {
           Authorization: `Bearer ${token}`,
         },
         body: formData,
-      }
+      },
     );
 
     const data = await res.json();
@@ -345,7 +362,7 @@ export default function AddVoters() {
   const updateVoterWithPhoto = async (
     id: number,
     voterData: any,
-    photoFile: File | null
+    photoFile: File | null,
   ) => {
     const token = sessionStorage.getItem("token");
     const formData = new FormData();
@@ -370,7 +387,7 @@ export default function AddVoters() {
           Authorization: `Bearer ${token}`,
         },
         body: formData,
-      }
+      },
     );
 
     const data = await res.json();
@@ -431,7 +448,7 @@ export default function AddVoters() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       if (!res.ok) throw new Error("Failed to fetch voter details");
       const data = await res.json();
@@ -483,7 +500,7 @@ export default function AddVoters() {
         // Set constituency if exists
         if (voter.constituency) {
           const foundConst = consts.find(
-            (c: any) => c.id === voter.constituency.id
+            (c: any) => c.id === voter.constituency.id,
           );
           if (foundConst) {
             const constituencyOption = {
@@ -511,7 +528,7 @@ export default function AddVoters() {
                 // Set GPU if exists
                 if (voter.gpu) {
                   const foundGpu = gpuList.find(
-                    (g: any) => g.id === voter.gpu.id
+                    (g: any) => g.id === voter.gpu.id,
                   );
                   if (foundGpu) {
                     const gpuOption = {
@@ -526,7 +543,7 @@ export default function AddVoters() {
                     // Set Ward if exists
                     if (voter.ward) {
                       const foundWard = wardList.find(
-                        (w: any) => w.id === voter.ward.id
+                        (w: any) => w.id === voter.ward.id,
                       );
                       if (foundWard) {
                         const wardOption = {
@@ -565,7 +582,7 @@ export default function AddVoters() {
           // Set municipal ward if exists
           if (voter.municipalWard) {
             const foundMWard = mWards.find(
-              (mw: any) => mw.id === voter.municipalWard.id
+              (mw: any) => mw.id === voter.municipalWard.id,
             );
             if (foundMWard) {
               const mWardOption = {
@@ -625,14 +642,14 @@ export default function AddVoters() {
       const updatedVoter = await updateVoterWithPhoto(
         selectedVoter.id,
         voterData,
-        photoFile
+        photoFile,
       );
 
       // Update the voter in local state to maintain current order
       setVoters((prevVoters) =>
         prevVoters.map((voter) =>
-          voter.id === selectedVoter.id ? updatedVoter.voter : voter
-        )
+          voter.id === selectedVoter.id ? updatedVoter.voter : voter,
+        ),
       );
 
       // Refetch voters to ensure consistency with server state
@@ -660,7 +677,7 @@ export default function AddVoters() {
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       const data = await res.json();
@@ -676,7 +693,7 @@ export default function AddVoters() {
       // Remove the deleted voter from local state immediately
       setVoters((prevVoters) => {
         const filtered = prevVoters.filter(
-          (voter) => Number(voter.id) !== Number(id)
+          (voter) => Number(voter.id) !== Number(id),
         );
         console.log(
           "Before delete:",
@@ -686,7 +703,7 @@ export default function AddVoters() {
           "Deleted ID:",
           id,
           "Type:",
-          typeof id
+          typeof id,
         );
         return filtered;
       });
@@ -718,13 +735,13 @@ export default function AddVoters() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(
-          errorData.error || "Failed to generate state epic number"
+          errorData.error || "Failed to generate state epic number",
         );
       }
 
@@ -733,8 +750,8 @@ export default function AddVoters() {
       // Update the voter in local state
       setVoters((prevVoters) =>
         prevVoters.map((v) =>
-          v.id === voter.id ? { ...v, stateEpicNo: data.stateEpicNo } : v
-        )
+          v.id === voter.id ? { ...v, stateEpicNo: data.stateEpicNo } : v,
+        ),
       );
 
       setSuccessMsg("State EPIC number generated successfully!");
@@ -893,7 +910,7 @@ export default function AddVoters() {
     } else {
       if (!pdfImportMunicipality || !pdfImportMunicipalWard) {
         setError(
-          "Municipality and Municipal Ward are required for Urban areas"
+          "Municipality and Municipal Ward are required for Urban areas",
         );
         return;
       }
@@ -915,11 +932,11 @@ export default function AddVoters() {
       } else {
         formData.append(
           "municipalityId",
-          pdfImportMunicipality!.value.toString()
+          pdfImportMunicipality!.value.toString(),
         );
         formData.append(
           "municipalWardId",
-          pdfImportMunicipalWard!.value.toString()
+          pdfImportMunicipalWard!.value.toString(),
         );
       }
 
@@ -932,7 +949,7 @@ export default function AddVoters() {
             Authorization: `Bearer ${token}`,
           },
           body: formData,
-        }
+        },
       );
 
       const data = await res.json();
@@ -975,7 +992,7 @@ export default function AddVoters() {
   const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
   const paginatedVoters = filteredVoters.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   const handlePageChange = (page: number) => {
@@ -1011,8 +1028,8 @@ export default function AddVoters() {
       backgroundColor: state.isSelected
         ? "#061E47"
         : state.isFocused
-        ? "rgba(6, 30, 71, 0.05)"
-        : "white",
+          ? "rgba(6, 30, 71, 0.05)"
+          : "white",
       color: state.isSelected ? "white" : "#1E293B",
       fontSize: "0.875rem",
       padding: "8px 12px",
@@ -1119,7 +1136,7 @@ export default function AddVoters() {
                 onClick={() =>
                   (
                     document.getElementById(
-                      "create_voter_modal"
+                      "create_voter_modal",
                     ) as HTMLDialogElement
                   )?.showModal()
                 }
@@ -1175,10 +1192,10 @@ export default function AddVoters() {
                         {searchType === "epicNo"
                           ? "EPIC No"
                           : searchType === "name"
-                          ? "Name"
-                          : searchType === "district"
-                          ? "District"
-                          : "Constituency"}
+                            ? "Name"
+                            : searchType === "district"
+                              ? "District"
+                              : "Constituency"}
                       </span>
                     </label>
                     <ul
@@ -1380,7 +1397,7 @@ export default function AddVoters() {
                               onClick={() =>
                                 (
                                   document.getElementById(
-                                    "create_voter_modal"
+                                    "create_voter_modal",
                                   ) as HTMLDialogElement
                                 )?.showModal()
                               }
@@ -1437,11 +1454,10 @@ export default function AddVoters() {
                                 alt={voter.name}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
-                                  (
-                                    e.target as HTMLImageElement
-                                  ).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                    voter.name
-                                  )}&background=061E47&color=fff`;
+                                  (e.target as HTMLImageElement).src =
+                                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                      voter.name,
+                                    )}&background=061E47&color=fff`;
                                 }}
                               />
                             ) : (
@@ -1578,7 +1594,7 @@ export default function AddVoters() {
                 <span className="font-semibold">
                   {Math.min(
                     (currentPage - 1) * itemsPerPage + 1,
-                    filteredVoters.length
+                    filteredVoters.length,
                   )}
                 </span>{" "}
                 to{" "}
@@ -1728,7 +1744,7 @@ export default function AddVoters() {
                 onClick={() => {
                   (
                     document.getElementById(
-                      "create_voter_modal"
+                      "create_voter_modal",
                     ) as HTMLDialogElement
                   )?.close();
                   resetForm();
@@ -1931,7 +1947,7 @@ export default function AddVoters() {
                           <Select
                             options={relationOptions}
                             value={relationOptions.find(
-                              (r) => r.value === relationType
+                              (r) => r.value === relationType,
                             )}
                             onChange={(option) =>
                               setRelationType(option?.value || "")
@@ -1974,7 +1990,7 @@ export default function AddVoters() {
                             value={age}
                             onChange={(e) =>
                               setAge(
-                                e.target.value ? parseInt(e.target.value) : ""
+                                e.target.value ? parseInt(e.target.value) : "",
                               )
                             }
                             min="18"
@@ -1992,7 +2008,7 @@ export default function AddVoters() {
                           <Select
                             options={genderOptions}
                             value={genderOptions.find(
-                              (g) => g.value === gender
+                              (g) => g.value === gender,
                             )}
                             onChange={(option) =>
                               setGender(option?.value || "")
@@ -2015,7 +2031,7 @@ export default function AddVoters() {
                         <Select
                           options={casteOptions}
                           value={casteOptions.find(
-                            (c) => c.value === casteCategory
+                            (c) => c.value === casteCategory,
                           )}
                           onChange={(option) =>
                             setCasteCategory(option?.value || "")
@@ -2361,7 +2377,7 @@ export default function AddVoters() {
                   onClick={() => {
                     (
                       document.getElementById(
-                        "create_voter_modal"
+                        "create_voter_modal",
                       ) as HTMLDialogElement
                     )?.close();
                     resetForm();
@@ -2625,7 +2641,7 @@ export default function AddVoters() {
                             <Select
                               options={relationOptions}
                               value={relationOptions.find(
-                                (r) => r.value === relationType
+                                (r) => r.value === relationType,
                               )}
                               onChange={(option) =>
                                 setRelationType(option?.value || "")
@@ -2669,7 +2685,9 @@ export default function AddVoters() {
                               value={age}
                               onChange={(e) =>
                                 setAge(
-                                  e.target.value ? parseInt(e.target.value) : ""
+                                  e.target.value
+                                    ? parseInt(e.target.value)
+                                    : "",
                                 )
                               }
                               min="18"
@@ -2687,7 +2705,7 @@ export default function AddVoters() {
                             <Select
                               options={genderOptions}
                               value={genderOptions.find(
-                                (g) => g.value === gender
+                                (g) => g.value === gender,
                               )}
                               onChange={(option) =>
                                 setGender(option?.value || "")
@@ -2710,7 +2728,7 @@ export default function AddVoters() {
                           <Select
                             options={casteOptions}
                             value={casteOptions.find(
-                              (c) => c.value === casteCategory
+                              (c) => c.value === casteCategory,
                             )}
                             onChange={(option) =>
                               setCasteCategory(option?.value || "")
@@ -3113,11 +3131,10 @@ export default function AddVoters() {
                               alt={selectedVoter.name}
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                (
-                                  e.target as HTMLImageElement
-                                ).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                  selectedVoter.name
-                                )}&background=061E47&color=fff&size=192`;
+                                (e.target as HTMLImageElement).src =
+                                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                    selectedVoter.name,
+                                  )}&background=061E47&color=fff&size=192`;
                               }}
                             />
                           ) : (
@@ -3170,7 +3187,7 @@ export default function AddVoters() {
                           <span className="text-sm font-medium text-gray-800 text-right">
                             {selectedVoter.createdAt
                               ? new Date(
-                                  selectedVoter.createdAt
+                                  selectedVoter.createdAt,
                                 ).toLocaleString("en-IN", {
                                   day: "2-digit",
                                   month: "short",
@@ -3188,7 +3205,7 @@ export default function AddVoters() {
                           <span className="text-sm font-medium text-gray-800 text-right">
                             {selectedVoter.updatedAt
                               ? new Date(
-                                  selectedVoter.updatedAt
+                                  selectedVoter.updatedAt,
                                 ).toLocaleString("en-IN", {
                                   day: "2-digit",
                                   month: "short",
@@ -3251,8 +3268,8 @@ export default function AddVoters() {
                                     selectedVoter.gender === "Male"
                                       ? "badge-info"
                                       : selectedVoter.gender === "Female"
-                                      ? "badge-secondary"
-                                      : "badge-accent"
+                                        ? "badge-secondary"
+                                        : "badge-accent"
                                   }`}
                                 >
                                   {selectedVoter.gender}
@@ -3728,10 +3745,13 @@ export default function AddVoters() {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       setPdfImportAreaType("Rural");
                       setPdfImportMunicipality(null);
                       setPdfImportMunicipalWard(null);
+                      if (pdfImportDistrict) {
+                        await fetchConstituencies(pdfImportDistrict.value);
+                      }
                     }}
                     className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all min-h-[48px] ${
                       pdfImportAreaType === "Rural"
@@ -3745,11 +3765,16 @@ export default function AddVoters() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       setPdfImportAreaType("Urban");
                       setPdfImportTc(null);
                       setPdfImportGpu(null);
                       setPdfImportWard(null);
+                      if (pdfImportDistrict) {
+                        await fetchMunicipalitiesByDistrict(
+                          pdfImportDistrict.value,
+                        );
+                      }
                     }}
                     className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all min-h-[48px] ${
                       pdfImportAreaType === "Urban"
@@ -3773,12 +3798,25 @@ export default function AddVoters() {
                   </label>
                   <Select
                     value={pdfImportDistrict}
-                    onChange={(option) => {
+                    onChange={async (option) => {
                       setPdfImportDistrict(option);
                       setPdfImportConstituency(null);
                       setPdfImportTc(null);
                       setPdfImportGpu(null);
                       setPdfImportWard(null);
+                      setPdfImportMunicipality(null);
+                      setPdfImportMunicipalWard(null);
+                      if (option) {
+                        await fetchConstituencies(option.value);
+                        if (pdfImportAreaType === "Urban") {
+                          await fetchMunicipalitiesByDistrict(option.value);
+                        }
+                      } else {
+                        setConstituencies([]);
+                        if (pdfImportAreaType === "Urban") {
+                          setMunicipalities([]);
+                        }
+                      }
                     }}
                     options={districts.map((d) => ({
                       value: d.id,
@@ -3916,6 +3954,7 @@ export default function AddVoters() {
                         placeholder="Select municipality..."
                         styles={selectStyles}
                         isClearable
+                        isDisabled={!pdfImportDistrict}
                       />
                     </div>
 
@@ -3984,7 +4023,7 @@ export default function AddVoters() {
                                 >
                                   {d.epicNo}
                                 </span>
-                              )
+                              ),
                             )}
                           </div>
                         </details>
