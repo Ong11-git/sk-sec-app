@@ -74,14 +74,14 @@ export default function MunicipalWard() {
   });
 
   const sortedMunicipalWards = [...filteredMunicipalWards].sort(
-    (a, b) => a.ward_no - b.ward_no
+    (a, b) => a.ward_no - b.ward_no,
   );
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedMunicipalWards.slice(
     indexOfFirstItem,
-    indexOfLastItem
+    indexOfLastItem,
   );
   const totalPages = Math.ceil(sortedMunicipalWards.length / itemsPerPage);
 
@@ -97,7 +97,7 @@ export default function MunicipalWard() {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (!res.ok) throw new Error("Failed to fetch municipalities");
@@ -124,7 +124,7 @@ export default function MunicipalWard() {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (!res.ok) throw new Error("Failed to fetch municipal wards");
@@ -201,8 +201,8 @@ export default function MunicipalWard() {
                   name: wardName,
                   ward_no: Number(wardNo),
                 }
-              : ward
-          )
+              : ward,
+          ),
         );
         setSuccessMsg("Municipal ward updated successfully!");
       } else {
@@ -213,7 +213,7 @@ export default function MunicipalWard() {
             ward_no: data.ward.ward_no,
             name: data.ward.name,
             municipality: municipalities.find(
-              (m) => m.id === selectedMunicipality.value
+              (m) => m.id === selectedMunicipality.value,
             ),
           },
         ]);
@@ -262,7 +262,7 @@ export default function MunicipalWard() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (!res.ok) {
@@ -466,8 +466,8 @@ export default function MunicipalWard() {
                         {searchType === "name"
                           ? "Name"
                           : searchType === "municipality"
-                          ? "Municipality"
-                          : "Number"}
+                            ? "Municipality"
+                            : "Number"}
                       </span>
                     </label>
                     <ul
@@ -746,7 +746,7 @@ export default function MunicipalWard() {
                 <span className="font-medium text-gray-900">
                   {Math.min(
                     currentPage * itemsPerPage,
-                    filteredMunicipalWards.length
+                    filteredMunicipalWards.length,
                   )}
                 </span>
                 <span>of</span>
@@ -887,7 +887,7 @@ export default function MunicipalWard() {
                       value={selectedMunicipality}
                       onChange={(val) => {
                         setSelectedMunicipality(
-                          val as { value: number; label: string } | null
+                          val as { value: number; label: string } | null,
                         );
                       }}
                       styles={selectStyles}

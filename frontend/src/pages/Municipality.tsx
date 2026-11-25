@@ -26,8 +26,8 @@ type Constituency = {
 };
 type MunicipalityItem = {
   id: number;
-  municipality_no: number;
-  municipality_name: string;
+  municipalityNo: number;
+  name: string;
   constituency?: Constituency;
   district?: District;
   districtId?: number;
@@ -76,7 +76,7 @@ export default function Municipality() {
     const query = searchQuery.toLowerCase();
 
     if (searchType === "name") {
-      return item.municipality_name.toLowerCase().includes(query);
+      return item.name.toLowerCase().includes(query);
     } else if (searchType === "district") {
       const districtName = item.district?.name;
       const districtCode = item.district?.code;
@@ -92,19 +92,19 @@ export default function Municipality() {
         constituencyNo?.toString().includes(query)
       );
     } else if (searchType === "number") {
-      return item.municipality_no.toString().includes(query);
+      return item.municipalityNo.toString().includes(query);
     }
     return true;
   });
 
   const sortedMunicipalities = [...filteredMunicipalities].sort(
-    (a, b) => a.id - b.id
+    (a, b) => a.id - b.id,
   );
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedMunicipalities.slice(
     indexOfFirstItem,
-    indexOfLastItem
+    indexOfLastItem,
   );
   const totalPages = Math.ceil(sortedMunicipalities.length / itemsPerPage);
 
@@ -148,8 +148,8 @@ export default function Municipality() {
       backgroundColor: state.isSelected
         ? "#061E47"
         : state.isFocused
-        ? "rgba(6, 30, 71, 0.05)"
-        : "white",
+          ? "rgba(6, 30, 71, 0.05)"
+          : "white",
       color: state.isSelected ? "white" : "#1E293B",
       fontSize: "0.875rem",
       padding: "8px 12px",
@@ -206,7 +206,7 @@ export default function Municipality() {
         `${import.meta.env.VITE_API_BASE_URL}/districts`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (!res.ok) throw new Error("Failed to fetch districts");
       const data = await res.json();
@@ -223,7 +223,7 @@ export default function Municipality() {
         `${import.meta.env.VITE_API_BASE_URL}/municipalities/all`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (!res.ok) throw new Error("Failed to fetch municipalities");
       const data = await res.json();
@@ -242,7 +242,7 @@ export default function Municipality() {
         `${
           import.meta.env.VITE_API_BASE_URL
         }/constituencies/by-district/${districtId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       if (!res.ok) throw new Error("Failed to fetch constituencies");
       const data = await res.json();
@@ -321,7 +321,7 @@ export default function Municipality() {
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (!res.ok) throw new Error("Failed to delete municipality");
       setMunicipalities((prev) => prev.filter((m) => m.id !== id));
@@ -335,8 +335,8 @@ export default function Municipality() {
 
   const handleEdit = async (municipality: MunicipalityItem) => {
     setEditingId(municipality.id);
-    setMunicipalityNo(municipality.municipality_no);
-    setMunicipalityName(municipality.municipality_name);
+    setMunicipalityNo(municipality.municipalityNo);
+    setMunicipalityName(municipality.name);
 
     if (municipality.district) {
       const districtOption = {
@@ -525,10 +525,10 @@ export default function Municipality() {
                         {searchType === "name"
                           ? "Name"
                           : searchType === "district"
-                          ? "District"
-                          : searchType === "constituency"
-                          ? "Constituency"
-                          : "Number"}
+                            ? "District"
+                            : searchType === "constituency"
+                              ? "Constituency"
+                              : "Number"}
                       </span>
                     </label>
                     <ul
@@ -781,10 +781,10 @@ export default function Municipality() {
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <span className="font-medium text-gray-800 text-sm">
-                            {item.municipality_name}
+                            {item.name}
                           </span>
                           <span className="text-xs text-gray-500 mt-0.5">
-                            Municipality No: {item.municipality_no}
+                            Municipality No: {item.municipalityNo}
                           </span>
                         </div>
                       </td>

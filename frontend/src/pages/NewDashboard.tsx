@@ -211,7 +211,6 @@ const NewDashboard: React.FC<DashboardProps> = ({
         newFilters.wardId = "";
         newFilters.municipalWardId = "";
       } else if (filterKey === "constituencyId") {
-        // When constituency changes, clear municipality and TC since they should be filtered by constituency
         newFilters.municipalityId = "";
         newFilters.tcId = "";
         newFilters.gpuId = "";
@@ -231,8 +230,6 @@ const NewDashboard: React.FC<DashboardProps> = ({
 
       // Fetch new filter options and analytics
       await fetchFilterOptions(newFilters);
-
-      // We'll trigger analytics fetch through useEffect dependency
     },
     [filters, fetchFilterOptions]
   );
@@ -708,12 +705,12 @@ const NewDashboard: React.FC<DashboardProps> = ({
               : "grid-cols-1 lg:grid-cols-2"
           }`}
         >
-          {/* District Chart */}
+          {/* District Chart -  */}
           <div className="bg-white rounded-xl shadow-md p-4 md:p-6 transition-all duration-200 hover:shadow-lg">
             <h3 className="text-lg font-semibold mb-4 text-gray-800">
               Voters by District
             </h3>
-            <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
+            <ResponsiveContainer width="100%" height={isMobile ? 300 : 350}>
               <BarChart data={charts.districtData}>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -722,13 +719,14 @@ const NewDashboard: React.FC<DashboardProps> = ({
                 />
                 <XAxis
                   dataKey="district"
-                  fontSize={isMobile ? 10 : 12}
-                  angle={isMobile ? -45 : sidebarCollapsed ? -45 : -30}
+                  fontSize={isMobile ? 11 : 12}
+                  angle={isMobile ? -45 : -30}
                   textAnchor="end"
-                  height={isMobile ? 50 : 70}
+                  height={isMobile ? 60 : 70}
                   stroke="#6B7280"
+                  interval={0}
                 />
-                <YAxis fontSize={isMobile ? 10 : 12} stroke="#6B7280" />
+                <YAxis fontSize={isMobile ? 11 : 12} stroke="#6B7280" />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar
                   dataKey="voters"
@@ -744,30 +742,31 @@ const NewDashboard: React.FC<DashboardProps> = ({
             </ResponsiveContainer>
           </div>
 
-          {/* Gender Distribution */}
+          {/* Gender Distribution -  */}
           <div className="bg-white rounded-xl shadow-md p-4 md:p-6 transition-all duration-200 hover:shadow-lg">
             <h3 className="text-lg font-semibold mb-4 text-gray-800">
               Gender Distribution
             </h3>
-            <div
-              className={`flex ${
-                sidebarCollapsed ? "flex-col" : "flex-col lg:flex-row"
-              } h-full`}
-            >
-              <div className="flex-1">
-                <ResponsiveContainer width="100%" height={isMobile ? 200 : 250}>
+
+            <div className="flex flex-col lg:flex-row gap-4 items-center">
+              {/* Chart */}
+              <div className="flex-1 w-full">
+                <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                   <PieChart>
                     <Pie
                       data={charts.genderData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={isMobile ? 40 : 60}
-                      outerRadius={isMobile ? 70 : 90}
-                      paddingAngle={3}
+                      innerRadius={isMobile ? 50 : 70}
+                      outerRadius={isMobile ? 80 : 100}
+                      paddingAngle={2}
                       dataKey="value"
                       label={({ name, percent }) =>
-                        `${name}: ${(percent * 100).toFixed(1)}%`
+                        percent > 0.005
+                          ? `${name}: ${(percent * 100).toFixed(1)}%`
+                          : ""
                       }
+                      labelLine={false}
                       animationDuration={1500}
                       animationEasing="ease-out"
                     >
@@ -776,55 +775,74 @@ const NewDashboard: React.FC<DashboardProps> = ({
                       ))}
                     </Pie>
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend />
+                    <Legend
+                      verticalAlign="bottom"
+                      height={36}
+                      wrapperStyle={{
+                        fontSize: isMobile ? "11px" : "12px",
+                        paddingTop: "10px",
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div
-                className={`${
-                  sidebarCollapsed
-                    ? "w-full mt-4"
-                    : "lg:w-1/3 mt-4 lg:mt-0 lg:pl-4"
-                }`}
-              >
-                <div className="space-y-3">
-                  {charts.genderData.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: item.color }}
-                        />
-                        <span className="text-sm font-medium">{item.name}</span>
+
+              {/* Percentage breakdown -  */}
+              <div className="lg:w-1/3 w-full">
+                <div className="space-y-2">
+                  {charts.genderData.map((item, index) => {
+                    const total = charts.genderData.reduce(
+                      (a, b) => a + b.value,
+                      0
+                    );
+                    const percentage =
+                      total > 0 ? (item.value / total) * 100 : 0;
+
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: item.color }}
+                          />
+                          <div className="text-sm font-medium text-gray-800">
+                            {item.name}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-gray-900 text-sm">
+                            {item.value.toLocaleString()}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {percentage.toFixed(1)}%
+                          </div>
+                        </div>
                       </div>
-                      <span className="font-bold">
-                        {item.value.toLocaleString()}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Second Row */}
+        {/*  Age Group and Community Distribution  */}
         <div
           className={`grid gap-4 md:gap-6 transition-all duration-300 ${
             sidebarCollapsed
-              ? "grid-cols-1 xl:grid-cols-3"
-              : "grid-cols-1 lg:grid-cols-3"
+              ? "grid-cols-1 xl:grid-cols-2"
+              : "grid-cols-1 lg:grid-cols-2"
           }`}
         >
-          {/* Age Group Distribution */}
+          {/* Age Group Distribution  */}
           <div className="bg-white rounded-xl shadow-md p-4 md:p-6 transition-all duration-200 hover:shadow-lg">
             <h3 className="text-lg font-semibold mb-4 text-gray-800">
               Age Group Distribution
             </h3>
-            <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
+            <ResponsiveContainer width="100%" height={isMobile ? 300 : 350}>
               <AreaChart data={charts.ageGroupData}>
                 <defs>
                   <linearGradient id="ageColor" x1="0" y1="0" x2="0" y2="1">
@@ -839,10 +857,10 @@ const NewDashboard: React.FC<DashboardProps> = ({
                 />
                 <XAxis
                   dataKey="ageGroup"
-                  fontSize={isMobile ? 10 : 12}
+                  fontSize={isMobile ? 11 : 12}
                   stroke="#6B7280"
                 />
-                <YAxis fontSize={isMobile ? 10 : 12} stroke="#6B7280" />
+                <YAxis fontSize={isMobile ? 11 : 12} stroke="#6B7280" />
                 <Tooltip content={<CustomTooltip />} />
                 <Area
                   type="monotone"
@@ -857,43 +875,12 @@ const NewDashboard: React.FC<DashboardProps> = ({
             </ResponsiveContainer>
           </div>
 
-          {/* Caste Category Distribution */}
-          <div className="bg-white rounded-xl shadow-md p-4 md:p-6 transition-all duration-200 hover:shadow-lg">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800">
-              Caste Category Distribution
-            </h3>
-            <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
-              <PieChart>
-                <Pie
-                  data={charts.casteCategoryData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={isMobile ? 40 : 60}
-                  outerRadius={isMobile ? 70 : 90}
-                  paddingAngle={3}
-                  dataKey="value"
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(1)}%`
-                  }
-                  animationDuration={1500}
-                  animationEasing="ease-out"
-                >
-                  {charts.casteCategoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Community Distribution */}
+          {/* Community Distribution  */}
           <div className="bg-white rounded-xl shadow-md p-4 md:p-6 transition-all duration-200 hover:shadow-lg">
             <h3 className="text-lg font-semibold mb-4 text-gray-800">
               Community Distribution (Top 10)
             </h3>
-            <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
+            <ResponsiveContainer width="100%" height={isMobile ? 300 : 350}>
               <BarChart data={charts.communityData.slice(0, 10)}>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -902,13 +889,14 @@ const NewDashboard: React.FC<DashboardProps> = ({
                 />
                 <XAxis
                   dataKey="name"
-                  fontSize={isMobile ? 9 : 10}
-                  angle={isMobile ? -45 : sidebarCollapsed ? -45 : -30}
+                  fontSize={isMobile ? 10 : 11}
+                  angle={isMobile ? -45 : -30}
                   textAnchor="end"
-                  height={isMobile ? 50 : 70}
+                  height={isMobile ? 60 : 70}
                   stroke="#6B7280"
+                  interval={0}
                 />
-                <YAxis fontSize={isMobile ? 10 : 12} stroke="#6B7280" />
+                <YAxis fontSize={isMobile ? 11 : 12} stroke="#6B7280" />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar
                   dataKey="value"
@@ -922,17 +910,60 @@ const NewDashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* Full Width Constituency Chart */}
+        {/* Caste Category Distribution  */}
         <div className="bg-white rounded-xl shadow-md p-4 md:p-6 transition-all duration-200 hover:shadow-lg">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-2">
             <h3 className="text-lg font-semibold text-gray-800">
-              Voters by Constituency
+              Caste Category Distribution
             </h3>
-            <div className="text-sm text-gray-500">
-              Showing top {Math.min(10, charts.constituencyData.length)}{" "}
-              constituencies
-            </div>
+            <div className="text-sm text-gray-500">Showing all categories</div>
           </div>
+          <ResponsiveContainer width="100%" height={isMobile ? 350 : 400}>
+            <PieChart>
+              <Pie
+                data={charts.casteCategoryData}
+                cx="50%"
+                cy="50%"
+                innerRadius={isMobile ? 50 : 70}
+                outerRadius={isMobile ? 90 : 110}
+                paddingAngle={2}
+                dataKey="value"
+                label={({ name, percent }) => {
+                  if (percent > 0.05) {
+                    return `${name}: ${(percent * 100).toFixed(1)}%`;
+                  }
+                  return "";
+                }}
+                labelLine={true}
+                animationDuration={1500}
+                animationEasing="ease-out"
+              >
+                {charts.casteCategoryData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip
+                content={<CustomTooltip />}
+                formatter={(value) => [value.toLocaleString(), "Voters"]}
+              />
+              <Legend
+                verticalAlign="bottom"
+                height={isMobile ? 50 : 60}
+                wrapperStyle={{
+                  fontSize: isMobile ? "10px" : "11px",
+                  paddingTop: "15px",
+                }}
+                layout="horizontal"
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/*  Constituency Chart  */}
+        <div className="bg-white rounded-xl shadow-md p-4 md:p-6 transition-all duration-200 hover:shadow-lg">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">
+            Voters by Constituency
+          </h3>
           <ResponsiveContainer width="100%" height={isMobile ? 300 : 350}>
             <BarChart
               data={charts.constituencyData.slice(0, 10)}
@@ -945,13 +976,13 @@ const NewDashboard: React.FC<DashboardProps> = ({
               />
               <XAxis
                 type="number"
-                fontSize={isMobile ? 10 : 12}
+                fontSize={isMobile ? 11 : 12}
                 stroke="#6B7280"
               />
               <YAxis
                 type="category"
                 dataKey="name"
-                fontSize={isMobile ? 10 : 12}
+                fontSize={isMobile ? 11 : 12}
                 stroke="#6B7280"
                 width={sidebarCollapsed ? 120 : 150}
               />

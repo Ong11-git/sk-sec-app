@@ -23,8 +23,8 @@ export async function getAllMunicipalities() {
   // Map to frontend expected format
   return municipalities.map((municipality) => ({
     id: municipality.id,
-    municipality_name: municipality.name,
-    municipality_no: municipality.municipalityNo,
+    name: municipality.name,
+    municipalityNo: municipality.municipalityNo,
     district: municipality.district,
     constituency: municipality.constituency,
     districtId: municipality.district?.id,
